@@ -51,6 +51,9 @@ Optional inputs:
   # Checkout the repository
   repo-checkout: # default: true
 
+  # Setup Go using actions/setup-go
+  setup-go: # default: true
+
   # Path to the go.mod or go.work file specifying the Go version
   go-version-file: # no default
 
@@ -87,16 +90,6 @@ jobs:
   govulncheck:
     name: govulncheck
     runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
 
       - id: govulncheck
         uses: nicholas-fedor/govulncheck-action@master
