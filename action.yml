@@ -41,7 +41,7 @@ runs:
   steps:
     - if: inputs.repo-checkout != 'false' # only explicit false prevents repo checkout
       uses: actions/checkout@v4.1.1
-    - uses: actions/setup-go@v5.0.0
+    - uses: actions/setup-go@v5.4.0
       with:
         go-version: ${{ inputs.go-version-input }}
         check-latest: ${{ inputs.check-latest }}
