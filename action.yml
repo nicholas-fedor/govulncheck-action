@@ -61,7 +61,7 @@ runs:
         fetch-depth: 0
 
     - if: inputs.setup-go != 'false' # only explicit false prevents setting up go
-      uses: actions/setup-go@6f26dcc668f723b50085562b23062c5a4be16a3d
+      uses: actions/setup-go@7c0b336c9aab5e8ed4f0ad8b81225b125f9883e4
       with:
         go-version: ${{ inputs.go-version-input }}
         check-latest: ${{ inputs.check-latest }}
