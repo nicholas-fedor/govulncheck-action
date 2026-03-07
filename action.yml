@@ -84,7 +84,7 @@ runs:
 
     - if: inputs.output-file == ''
       name: Run govulncheck
-      run: govulncheck -C ${INPUTS_WORK_DIR} -format ${INPUTS_OUTPUT_FORMAT} ${INPUTS_GO_PACKAGE}
+      run: govulncheck -C "$INPUTS_WORK_DIR" -format "$INPUTS_OUTPUT_FORMAT" "$INPUTS_GO_PACKAGE"
       shell: bash
       env:
         INPUTS_WORK_DIR: ${{ inputs.work-dir }}
@@ -93,7 +93,7 @@ runs:
 
     - if: inputs.output-file != ''
       name: Run govulncheck and save to file
-      run: govulncheck -C ${INPUTS_WORK_DIR} -format ${INPUTS_OUTPUT_FORMAT} ${INPUTS_GO_PACKAGE} > ${INPUTS_OUTPUT_FILE}
+      run: govulncheck -C "$INPUTS_WORK_DIR" -format "$INPUTS_OUTPUT_FORMAT" "$INPUTS_GO_PACKAGE" > ${INPUTS_OUTPUT_FILE}
       shell: bash
       env:
         INPUTS_WORK_DIR: ${{ inputs.work-dir }}
@@ -101,7 +101,7 @@ runs:
         INPUTS_GO_PACKAGE: ${{ inputs.go-package }}
         INPUTS_OUTPUT_FILE: ${{ inputs.output-file }}
 
-    - if: inputs.output-format == 'sarif'
+    - if: inputs.output-format == 'sarif' && inputs.output-file != ''
       name: Fix SARIF format
       run: yq --inplace --output-format json '.runs |= map ({"results":[]} + .)' ${INPUTS_OUTPUT_FILE}
       shell: bash
