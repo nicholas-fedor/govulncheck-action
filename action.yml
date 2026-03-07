@@ -59,6 +59,7 @@ runs:
       uses: actions/checkout@0c366fd6a839edf440554fa01a7085ccba70ac98
       with:
         fetch-depth: 0
+        persist-credentials: false
 
     # Default: use go-version when go-version-file is not specified
     - if: inputs.setup-go != 'false' && inputs.go-version-file == ''
@@ -83,15 +84,26 @@ runs:
 
     - if: inputs.output-file == ''
       name: Run govulncheck
-      run: govulncheck -C ${{ inputs.work-dir }} -format ${{ inputs.output-format }} ${{ inputs.go-package }}
+      run: govulncheck -C ${INPUTS_WORK_DIR} -format ${INPUTS_OUTPUT_FORMAT} ${INPUTS_GO_PACKAGE}
       shell: bash
+      env:
+        INPUTS_WORK_DIR: ${{ inputs.work-dir }}
+        INPUTS_OUTPUT_FORMAT: ${{ inputs.output-format }}
+        INPUTS_GO_PACKAGE: ${{ inputs.go-package }}
 
     - if: inputs.output-file != ''
       name: Run govulncheck and save to file
-      run: govulncheck -C ${{ inputs.work-dir }} -format ${{ inputs.output-format }} ${{ inputs.go-package }} > ${{ inputs.output-file }}
+      run: govulncheck -C ${INPUTS_WORK_DIR} -format ${INPUTS_OUTPUT_FORMAT} ${INPUTS_GO_PACKAGE} > ${INPUTS_OUTPUT_FILE}
       shell: bash
+      env:
+        INPUTS_WORK_DIR: ${{ inputs.work-dir }}
+        INPUTS_OUTPUT_FORMAT: ${{ inputs.output-format }}
+        INPUTS_GO_PACKAGE: ${{ inputs.go-package }}
+        INPUTS_OUTPUT_FILE: ${{ inputs.output-file }}
 
     - if: inputs.output-format == 'sarif'
       name: Fix SARIF format
-      run: yq --inplace --output-format json '.runs |= map ({"results":[]} + .)' ${{ inputs.output-file }}
+      run: yq --inplace --output-format json '.runs |= map ({"results":[]} + .)' ${INPUTS_OUTPUT_FILE}
       shell: bash
+      env:
+        INPUTS_OUTPUT_FILE: ${{ inputs.output-file }}
