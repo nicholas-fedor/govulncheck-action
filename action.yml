@@ -60,12 +60,21 @@ runs:
       with:
         fetch-depth: 0
 
-    - if: inputs.setup-go != 'false' # only explicit false prevents setting up go
+    # Default: use go-version when go-version-file is not specified
+    - if: inputs.setup-go != 'false' && inputs.go-version-file == ''
       uses: actions/setup-go@27fdb267c15a8835f1ead03dfa07f89be2bb741a
       with:
         go-version: ${{ inputs.go-version-input }}
         check-latest: ${{ inputs.check-latest }}
+        cache: ${{ inputs.cache }}
+
+    # Override: use go-version-file if provided
+    # This avoids the warning from actions/setup-go when both are specified
+    - if: inputs.setup-go != 'false' && inputs.go-version-file != ''
+      uses: actions/setup-go@27fdb267c15a8835f1ead03dfa07f89be2bb741a
+      with:
         go-version-file: ${{ inputs.go-version-file }}
+        check-latest: ${{ inputs.check-latest }}
         cache: ${{ inputs.cache }}
 
     - name: Install govulncheck
