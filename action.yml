@@ -63,7 +63,7 @@ runs:
 
     # Default: use go-version when go-version-file is not specified
     - if: inputs.setup-go != 'false' && inputs.go-version-file == ''
-      uses: actions/setup-go@8f19afcc704763637be6b1718da0af52ca05785d
+      uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
       with:
         go-version: ${{ inputs.go-version-input }}
         check-latest: ${{ inputs.check-latest }}
@@ -72,7 +72,7 @@ runs:
     # Override: use go-version-file if provided
     # This avoids the warning from actions/setup-go when both are specified
     - if: inputs.setup-go != 'false' && inputs.go-version-file != ''
-      uses: actions/setup-go@8f19afcc704763637be6b1718da0af52ca05785d
+      uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c
       with:
         go-version-file: ${{ inputs.go-version-file }}
         check-latest: ${{ inputs.check-latest }}
