@@ -25,7 +25,7 @@ fix_sarif() {
 
     trap 'rm -f "$temp_file"' EXIT
 
-    jq '.runs[].tool.driver.rules |= map(.properties.tags |= (if . != null then unique else . end))' "$output_file" > "$temp_file" && mv "$temp_file" "$output_file"
+    jq '.runs[].tool.driver.rules |= map(select(.properties != null and .properties.tags != null) | .properties.tags |= unique)' "$output_file" > "$temp_file" && mv "$temp_file" "$output_file"
 
     trap - EXIT
 

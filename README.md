@@ -105,11 +105,11 @@ The `scan-level` input controls the detail level of the vulnerability analysis:
 
 The `mode` input specifies how to analyze the code:
 
-| Mode      | Description                                           |
-|-----------|-------------------------------------------------------|
-| `source`  | Analyze source code (default)                         |
-| `binary`  | Analyze a compiled binary (requires pre-built binary) |
-| `extract` | Extract information from binary for later analysis    |
+| Mode      | Description                                             |
+|-----------|---------------------------------------------------------|
+| `source`  | Analyze source code (default)                           |
+| `binary`  | Analyze a compiled binary (requires a pre-built binary) |
+| `extract` | Extract information from binary for later analysis      |
 
 #### Binary Mode
 

@@ -108,8 +108,9 @@ validate_work_dir_path() {
     work_dir_path="$(realpath -m "$workspace/$work_dir" 2>/dev/null || echo "$workspace/$work_dir")"
     local workspace_path
     workspace_path="$(realpath -m "$workspace" 2>/dev/null || echo "$workspace")"
+    workspace_path="${workspace_path%/}"
 
-    if [[ "$work_dir_path" != "${workspace_path%/}/"* ]]; then
+    if [[ "$work_dir_path" != "${workspace_path}"/* && "$work_dir_path" != "${workspace_path}" ]]; then
         echo "Error: work-dir path must be within workspace"
         return 1
     fi

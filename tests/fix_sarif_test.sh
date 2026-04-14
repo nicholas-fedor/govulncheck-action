@@ -46,8 +46,8 @@ EOF
     run fix_sarif "$temp_file"
     [[ "$status" -eq 0 ]]
 
-    tag_count=$(jq -r '.runs[0].tool.driver.rules[0].properties.tags | length' "$temp_file")
-    [[ "$tag_count" -eq 1 ]]
+    tags=$(jq -c '.runs[0].tool.driver.rules[0].properties.tags' "$temp_file")
+    [[ "$tags" == '["CVE-2024-0001"]' ]]
 
     rm -f "$temp_file"
 }
@@ -102,8 +102,8 @@ EOF
     run fix_sarif "$temp_file"
     [[ "$status" -eq 0 ]]
 
-    tag_count=$(jq -r '.runs[0].tool.driver.rules[0].properties.tags | length' "$temp_file")
-    [[ "$tag_count" -eq 1 ]]
+    tags=$(jq -c '.runs[0].tool.driver.rules[0].properties.tags' "$temp_file")
+    [[ "$tags" == '["CVE-2024-0001"]' ]]
 
     rm -f "$temp_file"
 }
@@ -131,6 +131,9 @@ EOF
 
     run fix_sarif "$temp_file"
     [[ "$status" -eq 0 ]]
+
+    has_properties=$(jq -r '.runs[0].tool.driver.rules[0] | has("properties")' "$temp_file")
+    [[ "$has_properties" == "false" ]]
 
     rm -f "$temp_file"
 }
