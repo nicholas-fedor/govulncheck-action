@@ -1,0 +1,3 @@
+# ShellCheck configuration for govulncheck-action
+# Follow sourced files in src/ directory
+source=src/

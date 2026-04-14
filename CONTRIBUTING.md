@@ -1,8 +1,8 @@
 # Contributing to Go
 
 Go is an open source project.
-
-It is the work of hundreds of contributors. We appreciate your help!
+It is the work of hundreds of contributors.
+We appreciate your help!
 
 ## Filing issues
 
@@ -19,8 +19,6 @@ The gophers there will answer or ask you to file an issue if you've tripped over
 
 ## Contributing code
 
-Please read the [Contribution Guidelines](https://go.dev/doc/contribute.html)
-before sending patches.
+Please read the [Contribution Guidelines](https://go.dev/doc/contribute.html) before sending patches.
 
-Unless otherwise noted, the Go source files are distributed under
-the BSD-style license found in the LICENSE file.
+Unless otherwise noted, the Go source files are distributed under the BSD-style license found in the LICENSE file.
