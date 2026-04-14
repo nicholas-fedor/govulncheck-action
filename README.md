@@ -1,79 +1,180 @@
-# GitHub Action for govulncheck
+# govulncheck-action
 
-[Govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck) provides a low-noise, reliable way for Go users to learn about known vulnerabilities that may affect their dependencies.
-See details on [Go's support for vulnerability management](https://go.dev/blog/vuln).
+A GitHub Action that runs [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck) to detect known vulnerabilities in Go dependencies.
 
-## Usage
+This action uses **static analysis** to identify only those vulnerabilities that could actually affect your application, reducing noise from irrelevant findings.
 
-To use the govulncheck GitHub Action add the following step to your workflow:
+For detailed information about govulncheck's capabilities, flags, and limitations, see the [official govulncheck documentation](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck).
 
-  ```yaml
-  - id: govulncheck
-    uses: nicholas-fedor/govulncheck-action@master
-  ```
+## Quick Start
 
-By default the govulncheck Github Action will run with the [latest version of Go](https://go.dev/doc/install) and analyze all packages in the provided Go module.
+```yaml
+name: Run Go Security Check
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
 
-To run `govulncheck` locally:
+env:
+  OUTPUT_FILE: results.sarif
+
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - name: Run govulncheck
+        uses: nicholas-fedor/govulncheck-action@master
+        with:
+          output-format: sarif
+          output-file: ${{ env.OUTPUT_FILE }}
+          go-version-file: "go.mod"
+
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: ${{ env.OUTPUT_FILE }}
+```
+
+## Running Locally
+
+To run `govulncheck` locally before using the action:
 
 1. Install govulncheck:
 
-    ```bash
-    go install golang.org/x/vuln/cmd/govulncheck@latest
-    ```
+   ```bash
+   go install golang.org/x/vuln/cmd/govulncheck@latest
+   ```
 
 2. Run `govulncheck` from your project's root directory:
 
-    ```bash
-    govulncheck ./...
-    ```
+   ```bash
+   govulncheck ./...
+   ```
+
+For detailed information about govulncheck's capabilities, flags, and limitations, see the [official govulncheck documentation](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck).
 
 ## Configuration
 
-Optional inputs:
+### Go Environment
 
-  ```yaml
-  # Version of Go to use for govulncheck
-  go-version-input: # default: "stable"
+| Input                   | Description                                                      | Default    |
+|-------------------------|------------------------------------------------------------------|------------|
+| `setup-go`              | Setup Go via actions/setup-go                                    | `true`     |
+| `repo-checkout`         | Checkout the repository                                          | `true`     |
+| `go-version-input`      | Go version to use                                                | `"stable"` |
+| `go-version-file`       | Path to go.mod or go.work                                        | -          |
+| `check-latest`          | Always check for latest Go version                               | `true`     |
+| `cache`                 | Enable Go module caching                                         | `true`     |
+| `cache-dependency-path` | Path to dependency file for caching (e.g., go.sum for monorepos) | `""`       |
 
-  # Check for the latest Go version
-  check-latest: # default: true
+### Scan Options
 
-  # Specify whether Go caching is needed
-  cache: # default: true
+| Input           | Description                                                                                     | Default    |
+|-----------------|-------------------------------------------------------------------------------------------------|------------|
+| `go-package`    | Go package to scan (or binary path for binary mode)                                             | `"./..."`  |
+| `work-dir`      | Working directory                                                                               | `"."`      |
+| `scan-level`    | Scanning detail level: module, package, or symbol                                               | `"symbol"` |
+| `include-tests` | Include test files in vulnerability analysis (ignored in binary mode)                           | `false`    |
+| `build-tags`    | Comma-separated list of build tags                                                              | `""`       |
+| `db-url`        | Custom vulnerability database URL                                                               | `""`       |
+| `mode`          | Scan mode: source, binary, or extract                                                           | `"source"` |
+| `show`          | Show additional info: traces (full call stack), verbose (progress). Only valid for text format. | `""`       |
 
-  # Go package to scan with govulncheck
-  go-package: # default: "./..."
+### Output Options
 
-  # Directory in which to run govulncheck
-  work-dir: # default: "."
+| Input           | Description                               | Default  |
+|-----------------|-------------------------------------------|----------|
+| `output-format` | Output format: text, json, sarif, openvex | `"text"` |
+| `output-file`   | Output file path                          | `""`     |
 
-  # Checkout the repository
-  repo-checkout: # default: true
+### Scan Level
 
-  # Setup Go using actions/setup-go
-  setup-go: # default: true
+The `scan-level` input controls the detail level of the vulnerability analysis:
 
-  # Path to the go.mod or go.work file specifying the Go version
-  go-version-file: # no default
+| Level     | Description                                                                |
+|-----------|----------------------------------------------------------------------------|
+| `symbol`  | Most detailed - analyzes at function symbol level (default, most accurate) |
+| `package` | Analyzes at package level                                                  |
+| `module`  | Least detailed - analyzes at module level (fastest)                        |
 
-  # Output format ("text", "json", or "sarif")
-  output-format: # default: "text"
+### Scan Mode
 
-  # Output filepath
-  output-file: # default: ""
-  ```
+The `mode` input specifies how to analyze the code:
 
-Example GitHub workflow that uploads results to [CodeQL](https://docs.github.com/en/code-security/code-scanning/introduction-to-code-scanning/about-code-scanning-with-codeql):
+| Mode      | Description                                           |
+|-----------|-------------------------------------------------------|
+| `source`  | Analyze source code (default)                         |
+| `binary`  | Analyze a compiled binary (requires pre-built binary) |
+| `extract` | Extract information from binary for later analysis    |
+
+#### Binary Mode
+
+When using `mode: binary`, provide the path to a compiled binary instead of a package pattern:
 
 ```yaml
----
-name: Run govulncheck
-on:
-  pull_request:
-    branches: [main]
-  push:
-    branches: [main]
+- uses: nicholas-fedor/govulncheck-action@v1
+  with:
+    mode: binary
+    go-package: ./myapp
+```
+
+**Note:** The `-test` flag is not valid for binary mode and will be ignored if `mode: binary` is set.
+
+#### Show Output
+
+The `show` input enables additional output information:
+
+| Value     | Description                                   |
+|-----------|-----------------------------------------------|
+| `traces`  | Show full call stack for each vulnerability   |
+| `verbose` | Show progress messages and additional details |
+
+```yaml
+- uses: nicholas-fedor/govulncheck-action@v1
+  with:
+    show: traces
+    output-format: text
+```
+
+**Note:** The `-show` flag is only applicable for text output format.
+
+### Go Version Precedence
+
+The precedence for specifying the Go version via the inputs `go-version-input`, `go-version-file`, and `check-latest` is inherited from [actions/setup-go](https://github.com/actions/setup-go).
+
+### Output Formats
+
+| Format    | Description                                                                             |
+|-----------|-----------------------------------------------------------------------------------------|
+| `text`    | Human-readable text output (default)                                                    |
+| `json`    | JSON output with streaming support for large projects                                   |
+| `sarif`   | [SARIF](https://sarifweb.azurewebsites.net/) format for integration with security tools |
+| `openvex` | [OpenVEX](https://openvex.dev/) (Vulnerability EXchange) format                         |
+
+## Example Workflows
+
+### Basic
+
+```yaml
+name: Vulnerability Scanning
+on: [push, pull_request]
+
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: nicholas-fedor/govulncheck-action@v1
+```
+
+### SARIF for Code Scanning
+
+```yaml
+name: Vulnerability Scanning
+on: [push, pull_request]
 
 permissions:
   contents: read
@@ -81,52 +182,93 @@ permissions:
   pull-requests: read
   security-events: write
 
-env:
-  GO_VERSION: 1.24.x
-  OUTPUT_FILE: results.sarif
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: nicholas-fedor/govulncheck-action@v1
+        with:
+          output-format: sarif
+          output-file: results.sarif
 
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+```
+
+### JSON for Custom Processing
+
+```yaml
+name: Vulnerability Scanning
+on: [push, pull_request]
 
 jobs:
   govulncheck:
-    name: govulncheck
     runs-on: ubuntu-latest
-
-      - id: govulncheck
-        uses: nicholas-fedor/govulncheck-action@master
+    steps:
+      - uses: nicholas-fedor/govulncheck-action@v1
         with:
-          output-format: sarif
-          output-file: ${{ env.OUTPUT_FILE }}
-          go-version-input: ${{ env.GO_VERSION }}
-
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: ${{ env.OUTPUT_FILE }}
+          output-format: json
+          output-file: results.json
 ```
 
-The precedence for specifying the Go version via the inputs `go-version-input`, `go-version-file`, and `check-latest` is inherited from [actions/setup-go](https://github.com/actions/setup-go).
+### OpenVEX for Supply Chain Security
 
-The govulncheck-action follows the exit codes of govulncheck command.
-Specifying the output format 'json' or 'sarif' will return success even if there are some vulnerabilities detected. See [here](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck#hdr-Exit_codes)
-for more information.
+```yaml
+name: Vulnerability Scanning
+on: [push, pull_request]
 
-When a vulnerability is found with 'text' output format, an error will be displayed for that [GitHub job](https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow) with information about the vulnerability and how to fix it.
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: nicholas-fedor/govulncheck-action@v1
+        with:
+          output-format: openvex
+          output-file: results.vex
+```
 
-For example:
+### Binary Analysis
 
-![image](https://github.com/bkessler-go/prototype-repo/assets/107496148/932a2e5c-730e-4583-90f3-edab3ca06f60)
+```yaml
+name: Binary Vulnerability Scanning
+on: [push, pull_request]
 
-## Contributing
+jobs:
+  govulncheck:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Build binary
+        run: go build -o myapp ./cmd/myapp
 
-Our canonical Git repository is located at <https://go.googlesource.com/govulncheck-action>.
-There is a mirror of the repository at <https://github.com/golang/govulncheck-action>.
-See <https://go.dev/doc/contribute.html> for details on how to contribute.
+      - uses: nicholas-fedor/govulncheck-action@v1
+        with:
+          mode: binary
+          go-package: ./myapp
+          output-format: sarif
+          output-file: results.sarif
 
-## Feedback
+      - uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results.sarif
+```
 
-If you want to report a bug or have a feature suggestion, please file an issue at <https://github.com/golang/go/issues>.
-Please, use the prefix `govulncheck-action:` in the issue title.
+## Exit Codes
+
+| Code | Description                                                            |
+|------|------------------------------------------------------------------------|
+| 0    | Success (no vulnerabilities found, or using json/sarif/openvex format) |
+| 1    | Vulnerabilities found (text output only)                               |
+| 2    | Error occurred                                                         |
+
+**Note:** When using `json`, `sarif`, or `openvex` output formats, govulncheck always exits successfully (code 0) regardless of vulnerabilities found. This allows CI/CD pipelines to upload results to external services without failing the build.
+
+Reference: <https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck#hdr-Exit_codes>
 
 ## License
 
-Unless otherwise noted, the Go source files are distributed under the BSD-style license found in the [LICENSE](LICENSE) file.
+See the [LICENSE](LICENSE) file.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md).
