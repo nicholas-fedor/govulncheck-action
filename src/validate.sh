@@ -63,12 +63,22 @@ validate_output_file_path() {
         return 0
     fi
 
+    if [[ "$output_file" = /* ]]; then
+        echo "Error: output-file path must be a relative path"
+        return 1
+    fi
+
+    if [[ "$output_file" == *".."* || "$output_file" == *"%2e"* || "$output_file" == *"%2E"* ]]; then
+        echo "Error: output-file path must be within workspace"
+        return 1
+    fi
+
     local output_path
     output_path="$(realpath -m "$workspace/$output_file" 2>/dev/null || echo "$workspace/$output_file")"
     local workspace_path
     workspace_path="$(realpath -m "$workspace" 2>/dev/null || echo "$workspace")"
 
-    if [[ "$output_path" != "$workspace_path"* ]]; then
+    if [[ "$output_path" != "${workspace_path%/}/"* ]]; then
         echo "Error: output-file path must be within workspace"
         return 1
     fi
@@ -84,12 +94,22 @@ validate_work_dir_path() {
         return 0
     fi
 
+    if [[ "$work_dir" = /* ]]; then
+        echo "Error: work-dir path must be a relative path"
+        return 1
+    fi
+
+    if [[ "$work_dir" == *".."* || "$work_dir" == *"%2e"* || "$work_dir" == *"%2E"* ]]; then
+        echo "Error: work-dir path must be within workspace"
+        return 1
+    fi
+
     local work_dir_path
     work_dir_path="$(realpath -m "$workspace/$work_dir" 2>/dev/null || echo "$workspace/$work_dir")"
     local workspace_path
     workspace_path="$(realpath -m "$workspace" 2>/dev/null || echo "$workspace")"
 
-    if [[ "$work_dir_path" != "$workspace_path"* ]]; then
+    if [[ "$work_dir_path" != "${workspace_path%/}/"* ]]; then
         echo "Error: work-dir path must be within workspace"
         return 1
     fi

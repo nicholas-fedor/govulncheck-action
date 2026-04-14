@@ -96,7 +96,7 @@ load ../src/validate.sh
     [ "$status" -eq 0 ]
 }
 
-@test "validate_include_tests rejects empty string" {
+@test "validate_include_tests accepts empty string" {
     run validate_include_tests ""
     [ "$status" -eq 0 ]
 }
@@ -186,6 +186,42 @@ load ../src/validate.sh
 
 @test "validate_work_dir_path rejects path traversal" {
     run validate_work_dir_path "../etc" "/workspace"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error: work-dir path must be within workspace"* ]]
+}
+
+@test "validate_output_file_path rejects absolute path" {
+    run validate_output_file_path "/etc/passwd" "/workspace"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error: output-file path must be a relative path"* ]]
+}
+
+@test "validate_output_file_path rejects encoded traversal" {
+    run validate_output_file_path "%2e%2e/%2e%2e/etc" "/workspace"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error: output-file path must be within workspace"* ]]
+}
+
+@test "validate_output_file_path rejects double-encoded traversal" {
+    run validate_output_file_path "..%252f..%252fetc" "/workspace"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error: output-file path must be within workspace"* ]]
+}
+
+@test "validate_work_dir_path rejects absolute path" {
+    run validate_work_dir_path "/etc/passwd" "/workspace"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error: work-dir path must be a relative path"* ]]
+}
+
+@test "validate_work_dir_path rejects encoded traversal" {
+    run validate_work_dir_path "%2e%2e/%2e%2e/etc" "/workspace"
+    [ "$status" -eq 1 ]
+    [[ "$output" == *"Error: work-dir path must be within workspace"* ]]
+}
+
+@test "validate_work_dir_path rejects double-encoded traversal" {
+    run validate_work_dir_path "..%252f..%252fetc" "/workspace"
     [ "$status" -eq 1 ]
     [[ "$output" == *"Error: work-dir path must be within workspace"* ]]
 }

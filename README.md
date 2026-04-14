@@ -191,7 +191,7 @@ jobs:
           output-format: sarif
           output-file: results.sarif
 
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: results.sarif
 ```
@@ -248,7 +248,7 @@ jobs:
           output-format: sarif
           output-file: results.sarif
 
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: results.sarif
 ```

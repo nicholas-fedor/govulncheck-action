@@ -3,76 +3,91 @@
 load ../src/build-args.sh
 
 @test "build_args returns basic arguments" {
-    result=$(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
-    [[ "$result" == *"-C"*"."*" -format"*"text"*"./..."* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
+    result_str="${result[*]}"
+    [[ "$result_str" == *"-C"*". "*"-format"*text*"./..."* ]]
 }
 
 @test "build_args includes scan-level when not default" {
-    result=$(build_args "." "text" "./..." "module" "false" "" "" "source" "")
-    [[ "$result" == *"-scan-level"*"module"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "module" "false" "" "" "source" "")
+    result_str="${result[*]}"
+    [[ "$result_str" == *"-scan-level"*module* ]]
 }
 
 @test "build_args excludes scan-level when default" {
-    result=$(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
-    [[ "$result" != *"-scan-level"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
+    result_str="${result[*]}"
+    [[ "$result_str" != *"-scan-level"* ]]
 }
 
 @test "build_args includes -test when enabled in source mode" {
-    result=$(build_args "." "text" "./..." "symbol" "true" "" "" "source" "")
-    [[ "$result" == *"-test"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "true" "" "" "source" "")
+    result_str="${result[*]}"
+    [[ "$result_str" == *"-test"* ]]
 }
 
 @test "build_args excludes -test when disabled" {
-    result=$(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
-    [[ "$result" != *"-test"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
+    result_str="${result[*]}"
+    [[ "$result_str" != *"-test"* ]]
 }
 
 @test "build_args excludes -test in binary mode" {
-    result=$(build_args "." "text" "./..." "symbol" "true" "" "" "binary" "")
-    [[ "$result" != *"-test"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "true" "" "" "binary" "")
+    result_str="${result[*]}"
+    [[ "$result_str" != *"-test"* ]]
 }
 
 @test "build_args includes -tags when provided" {
-    result=$(build_args "." "text" "./..." "symbol" "false" "tag1,tag2" "" "source" "")
-    [[ "$result" == *"-tags"*"tag1,tag2"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "false" "tag1,tag2" "" "source" "")
+    result_str="${result[*]}"
+    [[ "$result_str" == *"-tags"*tag1,tag2* ]]
 }
 
 @test "build_args excludes -tags when empty" {
-    result=$(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
-    [[ "$result" != *"-tags"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
+    result_str="${result[*]}"
+    [[ "$result_str" != *"-tags"* ]]
 }
 
 @test "build_args includes -db when provided" {
-    result=$(build_args "." "text" "./..." "symbol" "false" "" "https://custom.db" "source" "")
-    [[ "$result" == *"-db"*"https://custom.db"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "false" "" "https://custom.db" "source" "")
+    result_str="${result[*]}"
+    [[ "$result_str" == *"-db"*https://custom.db* ]]
 }
 
 @test "build_args excludes -db when empty" {
-    result=$(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
-    [[ "$result" != *"-db"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
+    result_str="${result[*]}"
+    [[ "$result_str" != *"-db"* ]]
 }
 
 @test "build_args includes -mode when not default" {
-    result=$(build_args "." "text" "./..." "symbol" "false" "" "" "binary" "")
-    [[ "$result" == *"-mode"*"binary"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "false" "" "" "binary" "")
+    result_str="${result[*]}"
+    [[ "$result_str" == *"-mode"*binary* ]]
 }
 
 @test "build_args excludes -mode when default" {
-    result=$(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
-    [[ "$result" != *"-mode"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
+    result_str="${result[*]}"
+    [[ "$result_str" != *"-mode"* ]]
 }
 
 @test "build_args includes -show when provided with text format" {
-    result=$(build_args "." "text" "./..." "symbol" "false" "" "" "source" "traces")
-    [[ "$result" == *"-show"*"traces"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "false" "" "" "source" "traces")
+    result_str="${result[*]}"
+    [[ "$result_str" == *"-show"*traces* ]]
 }
 
 @test "build_args excludes -show when empty" {
-    result=$(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
-    [[ "$result" != *"-show"* ]]
+    mapfile -t -d '' result < <(build_args "." "text" "./..." "symbol" "false" "" "" "source" "")
+    result_str="${result[*]}"
+    [[ "$result_str" != *"-show"* ]]
 }
 
 @test "build_args excludes -show with non-text format" {
-    result=$(build_args "." "json" "./..." "symbol" "false" "" "" "source" "verbose")
-    [[ "$result" != *"-show"* ]]
+    mapfile -t -d '' result < <(build_args "." "json" "./..." "symbol" "false" "" "" "source" "verbose")
+    result_str="${result[*]}"
+    [[ "$result_str" != *"-show"* ]]
 }

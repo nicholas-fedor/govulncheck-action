@@ -20,7 +20,14 @@ fix_sarif() {
         return 1
     fi
 
-    jq '.runs[].tool.driver.rules |= map(.properties.tags |= (if . != null then unique else . end))' "$output_file" > "${output_file}.tmp" && mv "${output_file}.tmp" "$output_file"
+    local temp_file
+    temp_file=$(mktemp)
+
+    trap 'rm -f "$temp_file"' EXIT
+
+    jq '.runs[].tool.driver.rules |= map(.properties.tags |= (if . != null then unique else . end))' "$output_file" > "$temp_file" && mv "$temp_file" "$output_file"
+
+    trap - EXIT
 
     echo "SARIF duplicate tags fixed"
 }

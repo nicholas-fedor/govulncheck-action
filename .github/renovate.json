@@ -12,7 +12,8 @@
     {
       "description": "Update GitHub Actions with SHA pins",
       "matchManagers": ["github-actions"],
-      "matchPackagePatterns": ["^actions/"]
+      "matchPackageNames": ["^actions/"],
+      "pinDigests": true
     }
   ]
 }

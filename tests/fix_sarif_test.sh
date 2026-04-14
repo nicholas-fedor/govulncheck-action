@@ -52,6 +52,29 @@ EOF
     rm -f "$temp_file"
 }
 
+@test "fix_sarif handles empty rules array" {
+    local temp_file
+    temp_file=$(mktemp)
+    cat > "$temp_file" << 'EOF'
+{
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "rules": []
+        }
+      }
+    }
+  ]
+}
+EOF
+
+    run fix_sarif "$temp_file"
+    [[ "$status" -eq 0 ]]
+
+    rm -f "$temp_file"
+}
+
 @test "fix_sarif preserves non-duplicate tags" {
     local temp_file
     temp_file=$(mktemp)

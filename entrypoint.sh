@@ -40,7 +40,7 @@ run_all_validations \
     "$WORKSPACE"
 
 echo "Building govulncheck arguments..."
-IFS=' ' read -ra ARGS <<< "$(build_args \
+mapfile -t -d '' ARGS < <(build_args \
     "$INPUTS_WORK_DIR" \
     "$INPUTS_OUTPUT_FORMAT" \
     "$INPUTS_GO_PACKAGE" \
@@ -49,13 +49,14 @@ IFS=' ' read -ra ARGS <<< "$(build_args \
     "$INPUTS_BUILD_TAGS" \
     "$INPUTS_DB_URL" \
     "$INPUTS_MODE" \
-    "$INPUTS_SHOW")"
+    "$INPUTS_SHOW"
+)
 
 echo "Running govulncheck with arguments: ${ARGS[*]}"
 
 # Run govulncheck with or without output file
 if [[ -n "$INPUTS_OUTPUT_FILE" ]]; then
-    govulncheck "${ARGS[@]}" "$INPUTS_GO_PACKAGE" > "$INPUTS_OUTPUT_FILE"
+    govulncheck "${ARGS[@]}" > "$INPUTS_OUTPUT_FILE"
 
     # Apply SARIF workaround if needed (https://github.com/golang/go/issues/75890)
     if [[ "$INPUTS_OUTPUT_FORMAT" == "sarif" ]]; then
@@ -65,7 +66,7 @@ if [[ -n "$INPUTS_OUTPUT_FILE" ]]; then
         fix_sarif "$INPUTS_OUTPUT_FILE"
     fi
 else
-    govulncheck "${ARGS[@]}" "$INPUTS_GO_PACKAGE"
+    govulncheck "${ARGS[@]}"
 fi
 
 echo "govulncheck completed successfully"

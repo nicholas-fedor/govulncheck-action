@@ -55,8 +55,8 @@ build_args() {
     # Add the package to scan
     args+=("$go_package")
 
-    # Output the arguments
-    printf '%s\n' "${args[*]}"
+    # Output the arguments with NUL delimiter
+    printf '%s\0' "${args[@]}"
 }
 
 # If sourced with test mode, run tests
@@ -65,7 +65,7 @@ if [[ "${BATS_TEST:-false}" == "true" ]]; then
 fi
 
 # If run directly, build and print arguments
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+if [[ -n "${BASH_SOURCE[0]:-}" && "${BASH_SOURCE[0]}" == "${0}" ]]; then
     build_args \
         "${INPUTS_WORK_DIR:-.}" \
         "${INPUTS_OUTPUT_FORMAT:-text}" \
