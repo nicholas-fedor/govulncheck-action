@@ -2,6 +2,9 @@
 # SARIF post-processing to fix duplicate CVE tags
 # Workaround for https://github.com/golang/go/issues/75890
 
+# shellcheck disable=SC2317
+# Command appears unreachable - but return is valid when sourced for BATS tests
+
 set -euo pipefail
 
 fix_sarif() {

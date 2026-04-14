@@ -35,7 +35,7 @@ jobs:
           persist-credentials: false
 
       - name: Install bats
-        run: npm install -g bats
+        run: sudo apt-get update && sudo apt-get install -y bats
 
       - name: Run validation tests
         run: bats tests/validate_test.sh

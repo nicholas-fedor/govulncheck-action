@@ -5,11 +5,11 @@
 set -euo pipefail
 
 # Load validation functions (relative to action directory)
-# shellcheck source=src/validate.sh
+# shellcheck disable=SC1091
 source "${GITHUB_ACTION_PATH}/src/validate.sh"
 
 # Load argument builder (relative to action directory)
-# shellcheck source=src/build-args.sh
+# shellcheck disable=SC1091
 source "${GITHUB_ACTION_PATH}/src/build-args.sh"
 
 # Get input values from environment
@@ -60,7 +60,7 @@ if [[ -n "$INPUTS_OUTPUT_FILE" ]]; then
     # Apply SARIF workaround if needed (https://github.com/golang/go/issues/75890)
     if [[ "$INPUTS_OUTPUT_FORMAT" == "sarif" ]]; then
         echo "Applying SARIF duplicate tags fix..."
-        # shellcheck source=src/fix-sarif.sh
+        # shellcheck disable=SC1091
         source "${GITHUB_ACTION_PATH}/src/fix-sarif.sh"
         fix_sarif "$INPUTS_OUTPUT_FILE"
     fi

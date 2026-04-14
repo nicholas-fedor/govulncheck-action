@@ -2,6 +2,9 @@
 # Build govulncheck arguments based on inputs
 # Returns the arguments as a space-separated string
 
+# shellcheck disable=SC2317
+# Command appears unreachable - but return is valid when sourced for BATS tests
+
 set -euo pipefail
 
 build_args() {
