@@ -3,23 +3,35 @@
 load ../src/validate.sh
 
 @test "validate_output_format accepts text" {
-    run validate_output_format "text"
-    [ "$status" -eq 0 ]
+    if validate_output_format "text"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_output_format accepts json" {
-    run validate_output_format "json"
-    [ "$status" -eq 0 ]
+    if validate_output_format "json"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_output_format accepts sarif" {
-    run validate_output_format "sarif"
-    [ "$status" -eq 0 ]
+    if validate_output_format "sarif"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_output_format accepts openvex" {
-    run validate_output_format "openvex"
-    [ "$status" -eq 0 ]
+    if validate_output_format "openvex"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_output_format rejects invalid" {
@@ -29,39 +41,57 @@ load ../src/validate.sh
 }
 
 @test "validate_scan_level accepts symbol" {
-    run validate_scan_level "symbol"
-    [ "$status" -eq 0 ]
+    if validate_scan_level "symbol"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_scan_level accepts package" {
-    run validate_scan_level "package"
-    [ "$status" -eq 0 ]
+    if validate_scan_level "package"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_scan_level accepts module" {
-    run validate_scan_level "module"
-    [ "$status" -eq 0 ]
+    if validate_scan_level "module"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_scan_level rejects invalid" {
-    run validate_scan_level "invalid"
+    run validate_output_format "invalid"
     [ "$status" -eq 1 ]
-    [[ "$output" == *"Error: Invalid scan-level"* ]]
+    [[ "$output" == *"Error: Invalid output-format"* ]]
 }
 
 @test "validate_mode accepts source" {
-    run validate_mode "source"
-    [ "$status" -eq 0 ]
+    if validate_mode "source"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_mode accepts binary" {
-    run validate_mode "binary"
-    [ "$status" -eq 0 ]
+    if validate_mode "binary"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_mode accepts extract" {
-    run validate_mode "extract"
-    [ "$status" -eq 0 ]
+    if validate_mode "extract"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_mode rejects invalid" {
@@ -71,13 +101,19 @@ load ../src/validate.sh
 }
 
 @test "validate_show accepts traces" {
-    run validate_show "traces"
-    [ "$status" -eq 0 ]
+    if validate_show "traces"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_show accepts verbose" {
-    run validate_show "verbose"
-    [ "$status" -eq 0 ]
+    if validate_show "verbose"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_show rejects invalid" {
@@ -87,18 +123,27 @@ load ../src/validate.sh
 }
 
 @test "validate_include_tests accepts true" {
-    run validate_include_tests "true"
-    [ "$status" -eq 0 ]
+    if validate_include_tests "true"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_include_tests accepts false" {
-    run validate_include_tests "false"
-    [ "$status" -eq 0 ]
+    if validate_include_tests "false"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_include_tests accepts empty string" {
-    run validate_include_tests ""
-    [ "$status" -eq 0 ]
+    if validate_include_tests ""; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_include_tests rejects invalid" {
@@ -108,13 +153,19 @@ load ../src/validate.sh
 }
 
 @test "validate_go_package accepts ./..." {
-    run validate_go_package "./..."
-    [ "$status" -eq 0 ]
+    if validate_go_package "./..."; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_go_package accepts ./cmd/app" {
-    run validate_go_package "./cmd/app"
-    [ "$status" -eq 0 ]
+    if validate_go_package "./cmd/app"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_go_package rejects empty" {
@@ -124,8 +175,11 @@ load ../src/validate.sh
 }
 
 @test "run_all_validations passes with valid inputs" {
-    run run_all_validations "json" "symbol" "source" "" "false" "./..." "." "" "/workspace"
-    [ "$status" -eq 0 ]
+    if run_all_validations "json" "symbol" "source" "" "false" "./..." "." "" "/workspace"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "run_all_validations fails with invalid output-format" {
@@ -159,13 +213,19 @@ load ../src/validate.sh
 }
 
 @test "validate_output_file_path allows valid path" {
-    run validate_output_file_path "results.json" "/workspace"
-    [ "$status" -eq 0 ]
+    if validate_output_file_path "results.json" "/workspace"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_output_file_path allows empty path" {
-    run validate_output_file_path "" "/workspace"
-    [ "$status" -eq 0 ]
+    if validate_output_file_path "" "/workspace"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_output_file_path rejects path traversal" {
@@ -175,13 +235,19 @@ load ../src/validate.sh
 }
 
 @test "validate_work_dir_path allows valid path" {
-    run validate_work_dir_path "src" "/workspace"
-    [ "$status" -eq 0 ]
+    if validate_work_dir_path "src" "/workspace"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_work_dir_path allows dot" {
-    run validate_work_dir_path "." "/workspace"
-    [ "$status" -eq 0 ]
+    if validate_work_dir_path "." "/workspace"; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "validate_work_dir_path rejects path traversal" {

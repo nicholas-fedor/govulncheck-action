@@ -1,21 +1,24 @@
 #!/usr/bin/env bats
 
-# Test SARIF fix functionality
 load ../src/fix-sarif.sh
 
 @test "fix_sarif function exists" {
-    type -t fix_sarif | grep -q function
+    if type -t fix_sarif; then
+        :
+    else
+        return 1
+    fi
 }
 
 @test "fix_sarif handles missing file path" {
     run fix_sarif ""
-    [[ "$status" -eq 1 ]]
+    [ "$status" -eq 1 ]
     [[ "$output" == *"Error: INPUTS_OUTPUT_FILE is required"* ]]
 }
 
 @test "fix_sarif handles non-existent file" {
     run fix_sarif "/nonexistent/file.sarif"
-    [[ "$status" -eq 1 ]]
+    [ "$status" -eq 1 ]
     [[ "$output" == *"does not exist"* ]]
 }
 
@@ -43,8 +46,12 @@ load ../src/fix-sarif.sh
 }
 EOF
 
-    run fix_sarif "$temp_file"
-    [[ "$status" -eq 0 ]]
+    if fix_sarif "$temp_file"; then
+        :
+    else
+        rm -f "$temp_file"
+        return 1
+    fi
 
     tags=$(jq -c '.runs[0].tool.driver.rules[0].properties.tags' "$temp_file")
     [[ "$tags" == '["CVE-2024-0001"]' ]]
@@ -69,8 +76,12 @@ EOF
 }
 EOF
 
-    run fix_sarif "$temp_file"
-    [[ "$status" -eq 0 ]]
+    if fix_sarif "$temp_file"; then
+        :
+    else
+        rm -f "$temp_file"
+        return 1
+    fi
 
     rm -f "$temp_file"
 }
@@ -99,8 +110,12 @@ EOF
 }
 EOF
 
-    run fix_sarif "$temp_file"
-    [[ "$status" -eq 0 ]]
+    if fix_sarif "$temp_file"; then
+        :
+    else
+        rm -f "$temp_file"
+        return 1
+    fi
 
     tags=$(jq -c '.runs[0].tool.driver.rules[0].properties.tags' "$temp_file")
     [[ "$tags" == '["CVE-2024-0001"]' ]]
@@ -129,8 +144,12 @@ EOF
 }
 EOF
 
-    run fix_sarif "$temp_file"
-    [[ "$status" -eq 0 ]]
+    if fix_sarif "$temp_file"; then
+        :
+    else
+        rm -f "$temp_file"
+        return 1
+    fi
 
     has_properties=$(jq -r '.runs[0].tool.driver.rules[0] | has("properties")' "$temp_file")
     [[ "$has_properties" == "false" ]]

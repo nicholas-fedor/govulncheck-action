@@ -36,9 +36,10 @@ jobs:
       - run:
           name: Create temporary .simplecov config
           command: |
-            echo "require 'simplecov-lcov'" > .simplecov
-            echo "SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter" >> .simplecov
-            echo "SimpleCov.start" >> .simplecov
+            echo 'require "simplecov-lcov"' > .simplecov
+            echo 'SimpleCov::Formatter::LcovFormatter.config.report_with_single_file = true' >> .simplecov
+            echo 'SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter' >> .simplecov
+            echo 'SimpleCov.start' >> .simplecov
 
       - run:
           name: Run tests with coverage
@@ -47,7 +48,7 @@ jobs:
             bashcov -- bats --print-output-on-failure tests/
 
       - codecov/upload:
-          files: ./coverage/lcov
+          files: ./coverage/lcov/project.lcov
           flags: unittests
           git_service: github
           fail_on_error: true
