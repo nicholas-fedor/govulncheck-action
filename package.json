@@ -2,8 +2,8 @@
   "type": "module",
   "dependencies": {},
   "devDependencies": {
-    "@commitlint/cli": "^20.5.0",
-    "@commitlint/config-conventional": "^20.5.0",
-    "semantic-release": "^25.0.3"
+    "@commitlint/cli": "20.5.0",
+    "@commitlint/config-conventional": "20.5.0",
+    "semantic-release": "25.0.3"
   }
 }
