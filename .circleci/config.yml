@@ -14,7 +14,7 @@ jobs:
     docker:
       # Specify the version you desire here
       # See: https://circleci.com/developer/images/image/cimg/base
-      - image: kcov/kcov:latest-alpine@sha256:481289ae32e55e5b733019515acd10948a4f76dfed381765577db909664fc603
+      - image: cimg/base:current
 
     # Add steps to the job
     # See: https://circleci.com/docs/guides/orchestrate/jobs-steps/#steps-overview & https://circleci.com/docs/reference/configuration-reference/#steps
@@ -23,31 +23,34 @@ jobs:
       - checkout
 
       - run:
-          name: Install dependencies
-          command: apk add --no-cache bats curl coreutils gnupg
+          name: Install bashcov
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y ruby-full bats
+            sudo gem install bashcov simplecov-lcov
 
       - run:
           name: Make scripts executable
           command: chmod +x src/*.sh tests/*.sh entrypoint.sh
 
       - run:
+          name: Create temporary .simplecov config
+          command: |
+            echo "require 'simplecov-lcov'" > .simplecov
+            echo "SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter" >> .simplecov
+            echo "SimpleCov.start" >> .simplecov
+
+      - run:
           name: Run tests with coverage
           command: |
             mkdir -p coverage
-            for test_file in tests/*_test.sh; do
-              echo "Running ${test_file} with coverage"
-              kcov \
-                --include-pattern=src/,entrypoint.sh \
-                --exclude-pattern=tests/ \
-                "coverage/$(basename "${test_file}" .sh)" \
-                bash "${test_file}"
-            done
+            bashcov -- bats --print-output-on-failure tests/
 
       - codecov/upload:
-          files: ./coverage
+          files: ./coverage/lcov
           flags: unittests
-          fail_on_error: true
           git_service: github
+          fail_on_error: true
 
 # Orchestrate jobs using workflows
 # See: https://circleci.com/docs/guides/orchestrate/workflows/ & https://circleci.com/docs/reference/configuration-reference/#workflows
