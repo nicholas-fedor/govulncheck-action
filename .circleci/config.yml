@@ -14,7 +14,7 @@ jobs:
     docker:
       # Specify the version you desire here
       # See: https://circleci.com/developer/images/image/cimg/base
-      - image: kcov/kcov:latest-alpine@sha256:38605c447c7475573cb21b6e6c5339628931bde7abbc8753edd5e321801e2b66
+      - image: kcov/kcov:latest@sha256:c3103b11a41bb5fcc3ea82de849c4605ca83d486b0abbb4d2c535c23d55c93c6
 
     # Add steps to the job
     # See: https://circleci.com/docs/guides/orchestrate/jobs-steps/#steps-overview & https://circleci.com/docs/reference/configuration-reference/#steps
@@ -24,7 +24,7 @@ jobs:
 
       - run:
           name: Install bats
-          command: apk add --no-cache bats curl coreutils gnupg
+          command: apt-get update && apt-get install -y bats
 
       - run:
           name: Make scripts executable
