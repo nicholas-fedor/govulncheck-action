@@ -1,0 +1,28 @@
+---
+name: Release
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          persist-credentials: false
+
+      # Release rules:
+      #   feat    → minor (1.0.0 → 1.1.0)
+      #   fix    → patch (1.0.0 → 1.0.1)
+      #   chore  → patch (custom: dependency/action updates)
+      #   ! or BREAKING CHANGE → major (1.0.0 → 2.0.0)
+      # Default (no release): docs, style, refactor, perf, test
+      - uses: huggingface/semver-release-action@e4aad22758890179891b8eec37c7ea3a3efa4f27
+        with:
+          branches: '["master"]'
+          commitAnalyzerPluginOpts: >
+            {"releaseRules": [{"type": "chore", "release": "patch"}]}
