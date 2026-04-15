@@ -2,6 +2,9 @@
 # See: https://circleci.com/docs/reference/configuration-reference
 version: 2.1
 
+orbs:
+  codecov: codecov/codecov@5.4.3
+
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/guides/orchestrate/jobs-steps/#jobs-overview & https://circleci.com/docs/reference/configuration-reference/#jobs
 jobs:
@@ -37,12 +40,10 @@ jobs:
               coverage \
               bats --print-output-on-failure tests/
 
-      - run:
-          name: Upload coverage to Codecov
-          command: |
-            curl -Os https://uploader.codecov.io/latest/linux/codecov
-            chmod +x codecov
-            ./codecov --dir coverage --flags unittests --fail-on-error
+      - codecov/upload:
+          files: ./coverage
+          flags: unittests
+          fail_on_error: true
 
 # Orchestrate jobs using workflows
 # See: https://circleci.com/docs/guides/orchestrate/workflows/ & https://circleci.com/docs/reference/configuration-reference/#workflows
