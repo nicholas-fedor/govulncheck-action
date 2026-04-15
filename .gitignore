@@ -8,3 +8,13 @@ tests/*.tap
 
 # OS
 .DS_Store
+
+# Dependencies
+node_modules/
+
+# Bun
+.bun/
+bun.lockb
+
+# Build
+dist/
