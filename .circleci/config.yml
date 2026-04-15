@@ -34,11 +34,14 @@ jobs:
           name: Run tests with coverage
           command: |
             mkdir -p coverage
-            kcov \
-              --include-pattern=src/,entrypoint.sh \
-              --exclude-pattern=tests/ \
-              coverage \
-              bats --print-output-on-failure tests/
+            for test_file in tests/*_test.sh; do
+              echo "Running ${test_file} with coverage"
+              kcov \
+                --include-pattern=src/,entrypoint.sh \
+                --exclude-pattern=tests/ \
+                "coverage/$(basename "${test_file}" .sh)" \
+                bash "${test_file}"
+            done
 
       - codecov/upload:
           files: ./coverage
