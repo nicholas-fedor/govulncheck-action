@@ -1,0 +1,52 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/reference/configuration-reference
+version: 2.1
+
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/guides/orchestrate/jobs-steps/#jobs-overview & https://circleci.com/docs/reference/configuration-reference/#jobs
+jobs:
+  test:
+    # Specify the execution environment. You can specify an image from Docker Hub or use one of our convenience images from CircleCI's Developer Hub.
+    # See: https://circleci.com/docs/guides/execution-managed/executor-intro/ & https://circleci.com/docs/reference/configuration-reference/#executor-job
+    docker:
+      # Specify the version you desire here
+      # See: https://circleci.com/developer/images/image/cimg/base
+      - image: kcov/kcov:latest-alpine@sha256:38605c447c7475573cb21b6e6c5339628931bde7abbc8753edd5e321801e2b66
+
+    # Add steps to the job
+    # See: https://circleci.com/docs/guides/orchestrate/jobs-steps/#steps-overview & https://circleci.com/docs/reference/configuration-reference/#steps
+    steps:
+      # Checkout the code as the first step.
+      - checkout
+
+      - run:
+          name: Install bats
+          command: apk add --no-cache bats curl
+
+      - run:
+          name: Make scripts executable
+          command: chmod +x src/*.sh tests/*.sh entrypoint.sh
+
+      - run:
+          name: Run tests with coverage
+          command: |
+            mkdir -p coverage
+            kcov \
+              --include-pattern=src/,entrypoint.sh \
+              --exclude-pattern=tests/ \
+              coverage \
+              bats --print-output-on-failure tests/
+
+      - run:
+          name: Upload coverage to Codecov
+          command: |
+            curl -Os https://uploader.codecov.io/latest/linux/codecov
+            chmod +x codecov
+            ./codecov --dir coverage --flags unittests --fail-on-error
+
+# Orchestrate jobs using workflows
+# See: https://circleci.com/docs/guides/orchestrate/workflows/ & https://circleci.com/docs/reference/configuration-reference/#workflows
+workflows:
+  ci:
+    jobs:
+      - test
