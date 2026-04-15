@@ -1,5 +1,7 @@
 # govulncheck-action
 
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nicholas-fedor/govulncheck-action/badge)](https://scorecard.dev/viewer/?uri=github.com/nicholas-fedor/govulncheck-action)
+
 A GitHub Action that runs [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck) to detect known vulnerabilities in Go dependencies.
 
 This action uses **static analysis** to identify only those vulnerabilities that could actually affect your application, reducing noise from irrelevant findings.
