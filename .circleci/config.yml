@@ -45,7 +45,7 @@ jobs:
           name: Run tests with coverage
           command: |
             mkdir -p coverage
-            bashcov -- bats --print-output-on-failure tests/
+            bashcov -- bats --print-output-on-failure --jobs 1 tests/
 
       - codecov/upload:
           files: ./coverage/lcov/project.lcov
