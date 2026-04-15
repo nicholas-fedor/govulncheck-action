@@ -41,7 +41,7 @@ jobs:
               bats --print-output-on-failure tests/
 
       - codecov/upload:
-          token: $CODECOV_TOKEN
+          token: CODECOV_TOKEN
           files: ./coverage
           flags: unittests
           fail_on_error: true
