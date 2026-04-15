@@ -5,5 +5,9 @@
     "@commitlint/cli": "20.5.0",
     "@commitlint/config-conventional": "20.5.0",
     "semantic-release": "25.0.3"
+  },
+  "overrides": {
+    "picomatch": "4.0.4",
+    "tinyglobby": "0.2.16"
   }
 }
