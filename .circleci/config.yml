@@ -39,13 +39,22 @@ jobs:
             echo 'require "simplecov-lcov"' > .simplecov
             echo 'SimpleCov::Formatter::LcovFormatter.config.report_with_single_file = true' >> .simplecov
             echo 'SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter' >> .simplecov
-            echo 'SimpleCov.start' >> .simplecov
+            echo 'SimpleCov.start do' >> .simplecov
+            echo '  add_filter do |source_file|' >> .simplecov
+            echo '    source_file.filename !~ %r{/src/}' >> .simplecov
+            echo '  end' >> .simplecov
+            echo 'end' >> .simplecov
 
       - run:
           name: Run tests with coverage
           command: |
             mkdir -p coverage
-            bashcov -- bats --print-output-on-failure --jobs 1 tests/
+            bashcov -- bats \
+              --print-output-on-failure \
+              --no-tempdir-cleanup \
+              tests/build_args_test.sh \
+              tests/fix_sarif_test.sh \
+              tests/validate_test.sh
 
       - codecov/upload:
           files: ./coverage/lcov/project.lcov
