@@ -32,33 +32,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
-          persist-credentials: false
           fetch-depth: 0
+          persist-credentials: false
 
-      - name: Update README with pinned ref
+      - name: Update pinned ref in README
         uses: ./.github/actions/update-pinned-ref
         with:
-          repo-owner: ${{ github.event.inputs.repo-owner || 'nicholas-fedor' }}
-          repo-name: ${{ github.event.inputs.repo-name || 'govulncheck-action' }}
-          sha: ${{ github.event.inputs.sha }}
-          readme-path: ${{ github.event.inputs.readme-path }}
-
-      - name: Create branch and configure git
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git checkout -B docs/update-pinned-ref
-
-      - name: Commit and push changes
-        run: |
-          git add README.md
-          git diff --staged --quiet || git commit -m "docs(readme): update pinned action ref"
-          git push -u origin docs/update-pinned-ref -f
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Create pull request
-        run: |
-          gh pr create --title "docs: update pinned action ref in README" --body "## Summary\n- Update README.md with latest pinned action ref"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          repo-owner: ${{ github.event.inputs.repo-owner || github.event.client_payload.repo-owner || 'nicholas-fedor' }}
+          repo-name: ${{ github.event.inputs.repo-name || github.event.client_payload.repo-name || 'govulncheck-action' }}
+          sha: ${{ github.event.inputs.sha || github.event.client_payload.sha }}
+          readme-path: ${{ github.event.inputs.readme-path || github.event.client_payload.readme-path || 'README.md' }}
+          token: ${{ secrets.GITHUB_TOKEN }}

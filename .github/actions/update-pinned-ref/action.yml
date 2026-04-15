@@ -18,11 +18,16 @@ inputs:
     description: Path to README.md
     required: true
     default: README.md
+  token:
+    description: GitHub token for git and PR operations
+    required: false
+    default: ${{ github.token }}
 
 runs:
   using: composite
   steps:
     - name: Get SHA and update README
+      id: update-readme
       shell: bash
       env:
         INPUTS_REPO_OWNER: ${{ inputs.repo-owner }}
@@ -30,22 +35,20 @@ runs:
         INPUTS_SHA: ${{ inputs.sha }}
         INPUTS_README_PATH: ${{ inputs.readme-path }}
       run: |
-        if [[ -n "${INPUTS_SHA}" ]]; then
-          SHA="${INPUTS_SHA}"
-          REF="sha"
-        else
-          TAGS=$(gh api repos/${INPUTS_REPO_OWNER}/${INPUTS_REPO_NAME}/tags -q '.[0].name' 2>/dev/null || echo "")
-          if [[ -n "$TAGS" ]]; then
-            SHA=$(gh api repos/${INPUTS_REPO_OWNER}/${INPUTS_REPO_NAME}/git/ref/tags/$TAGS -q '.object.sha' 2>/dev/null)
-            REF="$TAGS"
-          else
-            SHA=$(gh api repos/${INPUTS_REPO_OWNER}/${INPUTS_REPO_NAME}/git/ref/heads/master -q '.object.sha' 2>/dev/null)
-            REF="master"
-          fi
-        fi
+        "${{ github.action_path }}/update-ref.sh" \
+          "${INPUTS_REPO_OWNER}" \
+          "${INPUTS_REPO_NAME}" \
+          "${INPUTS_SHA}" \
+          "${INPUTS_README_PATH}"
 
-        sed -i "s|${INPUTS_REPO_OWNER}/${INPUTS_REPO_NAME}@master|${INPUTS_REPO_OWNER}/${INPUTS_REPO_NAME}@${SHA}|g" "${INPUTS_README_PATH}"
-        echo "Updated README.md to use $REF ($SHA)"
+    - name: Commit and push changes
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+        INPUTS_README_PATH: ${{ inputs.readme-path }}
+      run: |
+        "${{ github.action_path }}/commit-and-push.sh" \
+          "${INPUTS_README_PATH}"
 
 branding:
   icon: refresh-cw
