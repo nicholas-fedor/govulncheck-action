@@ -20,6 +20,16 @@ validate_token() {
 configure_git() {
     git config --local user.email "github-actions[bot]@users.noreply.github.com"
     git config --local user.name "github-actions[bot]"
+
+    if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+        local remote_url
+        remote_url=$(git remote get-url origin)
+        if [[ "$remote_url" == https://* ]]; then
+            local repo_url
+            repo_url="${remote_url//https:\/\//https:\/\/x-access-token:${GITHUB_TOKEN}@}"
+            git remote set-url origin "$repo_url"
+        fi
+    fi
 }
 
 # Creates or updates the specified branch

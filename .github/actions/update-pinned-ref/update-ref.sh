@@ -50,13 +50,21 @@ fetch_sha() {
 
     local tags
     tags=$(gh api repos/"$repo_owner"/"$repo_name"/tags -q '.[0].name')
-    if [[ -n "$tags" ]]; then
+    if [[ -n "$tags" && "$tags" != "null" ]]; then
         local tag_sha
         tag_sha=$(gh api repos/"$repo_owner"/"$repo_name"/git/ref/tags/"$tags" -q '.object.sha')
+
+        local tag_type
+        tag_type=$(gh api repos/"$repo_owner"/"$repo_name"/git/ref/tags/"$tags" -q '.object.type')
+        if [[ "$tag_type" == "tag" ]]; then
+            tag_sha=$(gh api repos/"$repo_owner"/"$repo_name"/git/tags/"$tag_sha" -q '.object.sha')
+        fi
+
         if [[ -z "$tag_sha" ]]; then
             echo "Error: Failed to resolve SHA for tag $tags" >&2
             return 1
         fi
+
         echo "$tag_sha"
         return 0
     fi
@@ -98,7 +106,7 @@ resolve_ref() {
 
     local tags
     tags=$(gh api repos/"$repo_owner"/"$repo_name"/tags -q '.[0].name')
-    if [[ -n "$tags" ]]; then
+    if [[ -n "$tags" && "$tags" != "null" ]]; then
         echo "$tags"
         return 0
     fi

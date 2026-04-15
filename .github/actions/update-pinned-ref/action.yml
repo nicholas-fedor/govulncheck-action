@@ -34,6 +34,7 @@ runs:
         INPUTS_REPO_NAME: ${{ inputs.repo-name }}
         INPUTS_SHA: ${{ inputs.sha }}
         INPUTS_README_PATH: ${{ inputs.readme-path }}
+        GITHUB_TOKEN: ${{ inputs.token }}
       run: |
         "${{ github.action_path }}/update-ref.sh" \
           "${INPUTS_REPO_OWNER}" \
