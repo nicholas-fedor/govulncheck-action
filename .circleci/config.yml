@@ -24,7 +24,7 @@ jobs:
 
       - run:
           name: Install bats
-          command: apk add --no-cache bats curl gpg
+          command: apk add --no-cache bats curl gpg gpg-agent
 
       - run:
           name: Make scripts executable
