@@ -26,6 +26,10 @@ inputs:
 runs:
   using: composite
   steps:
+    - name: Make scripts executable
+      shell: bash
+      run: chmod +x "${{ github.action_path }}/update-ref.sh" "${{ github.action_path }}/commit-and-push.sh"
+
     - name: Get SHA and update README
       id: update-readme
       shell: bash
