@@ -2,9 +2,6 @@
 # Build govulncheck arguments based on inputs
 # Returns the arguments as a space-separated string
 
-# shellcheck disable=SC2317
-# Command appears unreachable - but return is valid when sourced for BATS tests
-
 set -euo pipefail
 
 build_args() {
@@ -26,7 +23,6 @@ build_args() {
     fi
 
     # Only add -test if explicitly enabled and in source mode
-    # Note: -test is only valid for source mode
     if [[ "$include_tests" == "true" && "$mode" == "source" ]]; then
         args+=(-test)
     fi
@@ -58,11 +54,6 @@ build_args() {
     # Output the arguments with NUL delimiter
     printf '%s\0' "${args[@]}"
 }
-
-# If sourced with test mode, run tests
-if [[ "${BATS_TEST:-false}" == "true" ]]; then
-    return 0 2>/dev/null || exit 0
-fi
 
 # If run directly, build and print arguments
 if [[ -n "${BASH_SOURCE[0]:-}" && "${BASH_SOURCE[0]}" == "${0}" ]]; then

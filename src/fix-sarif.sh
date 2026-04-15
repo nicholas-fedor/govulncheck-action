@@ -2,9 +2,6 @@
 # SARIF post-processing to fix duplicate CVE tags
 # Workaround for https://github.com/golang/go/issues/75890
 
-# shellcheck disable=SC2317
-# Command appears unreachable - but return is valid when sourced for BATS tests
-
 set -euo pipefail
 
 fix_sarif() {
@@ -31,11 +28,6 @@ fix_sarif() {
 
     echo "SARIF duplicate tags fixed"
 }
-
-# If sourced with test mode, run tests
-if [[ "${BATS_TEST:-false}" == "true" ]]; then
-    return 0 2>/dev/null || exit 0
-fi
 
 # If run directly, execute fix
 if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
