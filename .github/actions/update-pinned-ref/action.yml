@@ -1,0 +1,52 @@
+name: Update Pinned Ref
+
+description: Updates README.md to use the latest pinned commit SHA for the action
+
+author: nicholas-fedor
+
+inputs:
+  repo-owner:
+    description: Repository owner
+    required: true
+  repo-name:
+    description: Repository name
+    required: true
+  sha:
+    description: Specific commit SHA to use (optional, will fetch latest if not provided)
+    required: false
+  readme-path:
+    description: Path to README.md
+    required: true
+    default: README.md
+
+runs:
+  using: composite
+  steps:
+    - name: Get SHA and update README
+      shell: bash
+      env:
+        INPUTS_REPO_OWNER: ${{ inputs.repo-owner }}
+        INPUTS_REPO_NAME: ${{ inputs.repo-name }}
+        INPUTS_SHA: ${{ inputs.sha }}
+        INPUTS_README_PATH: ${{ inputs.readme-path }}
+      run: |
+        if [[ -n "${INPUTS_SHA}" ]]; then
+          SHA="${INPUTS_SHA}"
+          REF="sha"
+        else
+          TAGS=$(gh api repos/${INPUTS_REPO_OWNER}/${INPUTS_REPO_NAME}/tags -q '.[0].name' 2>/dev/null || echo "")
+          if [[ -n "$TAGS" ]]; then
+            SHA=$(gh api repos/${INPUTS_REPO_OWNER}/${INPUTS_REPO_NAME}/git/ref/tags/$TAGS -q '.object.sha' 2>/dev/null)
+            REF="$TAGS"
+          else
+            SHA=$(gh api repos/${INPUTS_REPO_OWNER}/${INPUTS_REPO_NAME}/git/ref/heads/master -q '.object.sha' 2>/dev/null)
+            REF="master"
+          fi
+        fi
+
+        sed -i "s|${INPUTS_REPO_OWNER}/${INPUTS_REPO_NAME}@master|${INPUTS_REPO_OWNER}/${INPUTS_REPO_NAME}@${SHA}|g" "${INPUTS_README_PATH}"
+        echo "Updated README.md to use $REF ($SHA)"
+
+branding:
+  icon: refresh-cw
+  color: blue
