@@ -44,6 +44,7 @@ jobs:
           files: ./coverage
           flags: unittests
           fail_on_error: true
+          git_service: github
 
 # Orchestrate jobs using workflows
 # See: https://circleci.com/docs/guides/orchestrate/workflows/ & https://circleci.com/docs/reference/configuration-reference/#workflows
