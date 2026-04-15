@@ -3,15 +3,16 @@
 
 # govulncheck-action
 
+A GitHub Action that runs [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck) to detect known vulnerabilities in Go dependencies.
+
 <!-- markdownlint-restore -->
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/nicholas-fedor/govulncheck-action/badge)](https://scorecard.dev/viewer/?uri=github.com/nicholas-fedor/govulncheck-action)
+[![CircleCI](https://dl.circleci.com/status-badge/img/gh/nicholas-fedor/govulncheck-action/tree/master.svg?style=shield)](https://dl.circleci.com/status-badge/redirect/gh/nicholas-fedor/govulncheck-action/tree/master)
+[![codecov](https://codecov.io/gh/nicholas-fedor/govulncheck-action/graph/badge.svg?token=A60MVF46VX)](https://codecov.io/gh/nicholas-fedor/govulncheck-action)
 [![Codacy Badge](https://app.codacy.com/project/badge/Grade/31b33e083b1c48e0af7564d6fce1a78c)](https://app.codacy.com/gh/nicholas-fedor/govulncheck-action/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade)
 ![GitHub Tag](https://img.shields.io/github/v/tag/nicholas-fedor/govulncheck-action)
 ![GitHub License](https://img.shields.io/github/license/nicholas-fedor/govulncheck-action)
-
 </div>
-
-A GitHub Action that runs [govulncheck](https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck) to detect known vulnerabilities in Go dependencies.
 
 This action uses **static analysis** to identify only those vulnerabilities that could actually affect your application, reducing noise from irrelevant findings.
 
