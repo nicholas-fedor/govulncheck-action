@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
-load ../src/validate.sh
+# shellcheck source=../src/validate.sh disable=SC1091
+source "${BATS_TEST_DIRNAME}/../src/validate.sh"
 
 @test "validate_output_format accepts text"    { validate_output_format "text"    || return 1; }
 @test "validate_output_format accepts json"    { validate_output_format "json"    || return 1; }

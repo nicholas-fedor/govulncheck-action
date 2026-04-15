@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
-load ../src/fix-sarif.sh
+# shellcheck source=../src/fix-sarif.sh disable=SC1091
+source "${BATS_TEST_DIRNAME}/../src/fix-sarif.sh"
 
 @test "fix_sarif function exists" {
     type -t fix_sarif | grep -q function

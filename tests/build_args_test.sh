@@ -1,6 +1,7 @@
 #!/usr/bin/env bats
 
-load ../src/build-args.sh
+# shellcheck source=../src/build-args.sh disable=SC1091
+source "${BATS_TEST_DIRNAME}/../src/build-args.sh"
 
 @test "build_args returns basic arguments" {
     local output_file
