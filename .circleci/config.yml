@@ -24,7 +24,7 @@ jobs:
 
       - run:
           name: Install bats
-          command: apk add --no-cache bats curl
+          command: apk add --no-cache bats curl gpg
 
       - run:
           name: Make scripts executable
