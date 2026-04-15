@@ -3,22 +3,26 @@
 load ../src/fix-sarif.sh
 
 @test "fix_sarif function exists" {
-    if type -t fix_sarif; then
-        :
-    else
-        return 1
-    fi
+    type -t fix_sarif | grep -q function
 }
 
 @test "fix_sarif handles missing file path" {
-    run fix_sarif ""
-    [ "$status" -eq 1 ]
+    local tmp status=0
+    tmp=$(mktemp)
+    fix_sarif "" > "$tmp" 2>&1 || status=$?
+    output=$(cat "$tmp")
+    rm -f "$tmp"
+    [[ "$status" -eq 1 ]]
     [[ "$output" == *"Error: INPUTS_OUTPUT_FILE is required"* ]]
 }
 
 @test "fix_sarif handles non-existent file" {
-    run fix_sarif "/nonexistent/file.sarif"
-    [ "$status" -eq 1 ]
+    local tmp status=0
+    tmp=$(mktemp)
+    fix_sarif "/nonexistent/file.sarif" > "$tmp" 2>&1 || status=$?
+    output=$(cat "$tmp")
+    rm -f "$tmp"
+    [[ "$status" -eq 1 ]]
     [[ "$output" == *"does not exist"* ]]
 }
 
@@ -46,12 +50,7 @@ load ../src/fix-sarif.sh
 }
 EOF
 
-    if fix_sarif "$temp_file"; then
-        :
-    else
-        rm -f "$temp_file"
-        return 1
-    fi
+    fix_sarif "$temp_file" || return 1
 
     tags=$(jq -c '.runs[0].tool.driver.rules[0].properties.tags' "$temp_file")
     [[ "$tags" == '["CVE-2024-0001"]' ]]
@@ -76,12 +75,7 @@ EOF
 }
 EOF
 
-    if fix_sarif "$temp_file"; then
-        :
-    else
-        rm -f "$temp_file"
-        return 1
-    fi
+    fix_sarif "$temp_file" || return 1
 
     rm -f "$temp_file"
 }
@@ -110,12 +104,7 @@ EOF
 }
 EOF
 
-    if fix_sarif "$temp_file"; then
-        :
-    else
-        rm -f "$temp_file"
-        return 1
-    fi
+    fix_sarif "$temp_file" || return 1
 
     tags=$(jq -c '.runs[0].tool.driver.rules[0].properties.tags' "$temp_file")
     [[ "$tags" == '["CVE-2024-0001"]' ]]
@@ -144,12 +133,7 @@ EOF
 }
 EOF
 
-    if fix_sarif "$temp_file"; then
-        :
-    else
-        rm -f "$temp_file"
-        return 1
-    fi
+    fix_sarif "$temp_file" || return 1
 
     has_properties=$(jq -r '.runs[0].tool.driver.rules[0] | has("properties")' "$temp_file")
     [[ "$has_properties" == "false" ]]
