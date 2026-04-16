@@ -10,7 +10,7 @@ source "${BATS_TEST_DIRNAME}/../src/build-args.sh"
     mapfile -t -d '' result < "$output_file"
     rm -f "$output_file"
     result_str="${result[*]}"
-    [[ "$result_str" == *"-C"*". "*"-format"*text*"./..."* ]]
+    [[ "$result_str" == *"-C"* && "$result_str" == *"-format"* && "$result_str" == *"text"* && "$result_str" == *"./..."* ]]
 }
 
 @test "build_args includes scan-level when not default" {
@@ -151,4 +151,21 @@ source "${BATS_TEST_DIRNAME}/../src/build-args.sh"
     rm -f "$output_file"
     result_str="${result[*]}"
     [[ "$result_str" != *"-show"* ]]
+}
+
+@test "build_args splits multiple package patterns into separate arguments" {
+    local output_file
+    output_file=$(mktemp)
+    build_args "." "text" "pkg/... internal/..." "symbol" "false" "" "" "source" "" > "$output_file"
+    mapfile -t -d '' result < "$output_file"
+    rm -f "$output_file"
+
+    # Expected args: -C . -format text pkg/... internal/...
+    [[ ${#result[@]} -eq 6 ]] &&
+    [[ "${result[0]}" == "-C" ]] &&
+    [[ "${result[1]}" == "." ]] &&
+    [[ "${result[2]}" == "-format" ]] &&
+    [[ "${result[3]}" == "text" ]] &&
+    [[ "${result[4]}" == "cmd/..." ]] &&
+    [[ "${result[5]}" == "internal/..." ]]
 }

@@ -43,7 +43,7 @@ inputs:
 
   # Scan options
   go-package:
-    description: "Go Package to scan with govulncheck"
+    description: 'Go package to scan (or binary path for binary mode). Supports multiple space-separated patterns (e.g., "pkg/... internal/...")'
     required: false
     default: "./..."
 
