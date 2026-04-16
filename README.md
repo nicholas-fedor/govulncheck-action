@@ -85,16 +85,16 @@ For detailed information about govulncheck's capabilities, flags, and limitation
 
 ### Scan Options
 
-| Input           | Description                                                                                     | Default    |
-|-----------------|-------------------------------------------------------------------------------------------------|------------|
-| `go-package`    | Go package to scan (or binary path for binary mode)                                             | `"./..."`  |
-| `work-dir`      | Working directory                                                                               | `"."`      |
-| `scan-level`    | Scanning detail level: module, package, or symbol                                               | `"symbol"` |
-| `include-tests` | Include test files in vulnerability analysis (ignored in binary mode)                           | `false`    |
-| `build-tags`    | Comma-separated list of build tags                                                              | `""`       |
-| `db-url`        | Custom vulnerability database URL                                                               | `""`       |
-| `mode`          | Scan mode: source, binary, or extract                                                           | `"source"` |
-| `show`          | Show additional info: traces (full call stack), verbose (progress). Only valid for text format. | `""`       |
+| Input           | Description                                                                                                                      | Default    |
+|-----------------|----------------------------------------------------------------------------------------------------------------------------------|------------|
+| `go-package`    | Go package to scan (or binary path for binary mode). Supports multiple space-separated patterns (e.g., `"pkg/... internal/..."`) | `"./..."`  |
+| `work-dir`      | Working directory                                                                                                                | `"."`      |
+| `scan-level`    | Scanning detail level: module, package, or symbol                                                                                | `"symbol"` |
+| `include-tests` | Include test files in vulnerability analysis (ignored in binary mode)                                                            | `false`    |
+| `build-tags`    | Comma-separated list of build tags                                                                                               | `""`       |
+| `db-url`        | Custom vulnerability database URL                                                                                                | `""`       |
+| `mode`          | Scan mode: source, binary, or extract                                                                                            | `"source"` |
+| `show`          | Show additional info: traces (full call stack), verbose (progress). Only valid for text format.                                  | `""`       |
 
 ### Output Options
 
@@ -206,6 +206,16 @@ jobs:
       - uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: results.sarif
+```
+
+### Selective Package Scanning
+
+Scan specific directories by providing multiple space-separated patterns to `go-package`:
+
+```yaml
+- uses: nicholas-fedor/govulncheck-action@v1
+  with:
+    go-package: "pkg/... internal/..."
 ```
 
 ### JSON for Custom Processing

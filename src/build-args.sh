@@ -48,8 +48,11 @@ build_args() {
         args+=(-show "$show")
     fi
 
-    # Add the package to scan
-    args+=("$go_package")
+    # Split go_package on whitespace to support multiple patterns (e.g., "pkg/... internal/...")
+    # Using read to avoid glob expansion on patterns
+    local GO_PACKAGES
+    read -ra GO_PACKAGES <<< "$go_package"
+    args+=("${GO_PACKAGES[@]}")
 
     # Output the arguments with NUL delimiter
     printf '%s\0' "${args[@]}"
