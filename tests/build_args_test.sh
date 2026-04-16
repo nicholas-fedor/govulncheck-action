@@ -166,6 +166,6 @@ source "${BATS_TEST_DIRNAME}/../src/build-args.sh"
     [[ "${result[1]}" == "." ]] &&
     [[ "${result[2]}" == "-format" ]] &&
     [[ "${result[3]}" == "text" ]] &&
-    [[ "${result[4]}" == "cmd/..." ]] &&
+    [[ "${result[4]}" == "pkg/..." ]] &&
     [[ "${result[5]}" == "internal/..." ]]
 }
