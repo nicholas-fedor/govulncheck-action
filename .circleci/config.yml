@@ -3,7 +3,7 @@
 version: 2.1
 
 orbs:
-  codecov: codecov/codecov@5.4.3
+  codecov: codecov/codecov@6.0.0
 
 # Define a job to be invoked later in a workflow.
 # See: https://circleci.com/docs/guides/orchestrate/jobs-steps/#jobs-overview & https://circleci.com/docs/reference/configuration-reference/#jobs
