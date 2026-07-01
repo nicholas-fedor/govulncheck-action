@@ -14,7 +14,7 @@ jobs:
     docker:
       # Specify the version you desire here
       # See: https://circleci.com/developer/images/image/cimg/base
-      - image: cimg/base:current@sha256:deb111cac98e50249a996a413313b8e3d381f4ae2e7059b7e27dce02f61d744c
+      - image: cimg/base:current@sha256:6b53042171c5eec83d8a9b14206b8483195dde2f3265a85a3d18fe4b778329f3
 
     # Add steps to the job
     # See: https://circleci.com/docs/guides/orchestrate/jobs-steps/#steps-overview & https://circleci.com/docs/reference/configuration-reference/#steps
