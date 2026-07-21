@@ -1,3 +1,9 @@
 # Code Owners
 # @nicholas-fedor is the primary maintainer
 * @nicholas-fedor
+
+# Dependency + CI files updated by Renovate / bots — no code owner review required
+package.json
+package-lock.json
+bun.lock
+.github/
