@@ -60,7 +60,7 @@ if [[ -n "$INPUTS_OUTPUT_FILE" ]]; then
 
     # Apply SARIF workaround if needed (https://github.com/golang/go/issues/75890)
     if [[ "$INPUTS_OUTPUT_FORMAT" == "sarif" ]]; then
-        echo "Applying SARIF duplicate tags fix..."
+        echo "Applying SARIF duplicate tags and stacks fix..."
         # shellcheck disable=SC1091
         source "${GITHUB_ACTION_PATH}/src/fix-sarif.sh"
         fix_sarif "$INPUTS_OUTPUT_FILE"

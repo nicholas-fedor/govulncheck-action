@@ -136,8 +136,144 @@ EOF
 
     fix_sarif "$temp_file" || return 1
 
-    has_properties=$(jq -r '.runs[0].tool.driver.rules[0] | has("properties")' "$temp_file")
-    [[ "$has_properties" == "false" ]]
+    rule=$(jq -c '.runs[0].tool.driver.rules' "$temp_file")
+    [[ "$rule" == '[{"id":"GO-2024-0001"}]' ]]
+
+    rm -f "$temp_file"
+}
+
+@test "fix_sarif keeps rules without tags alongside rules with tags" {
+    local temp_file
+    temp_file=$(mktemp)
+    cat > "$temp_file" << 'EOF'
+{
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "rules": [
+            {
+              "id": "GO-2024-0001",
+              "properties": {}
+            },
+            {
+              "id": "GO-2024-0002",
+              "properties": {
+                "tags": ["CVE-2024-0002", "CVE-2024-0002"]
+              }
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
+EOF
+
+    fix_sarif "$temp_file" || return 1
+
+    rules=$(jq -c '.runs[0].tool.driver.rules' "$temp_file")
+    [[ "$rules" == '[{"id":"GO-2024-0001","properties":{}},{"id":"GO-2024-0002","properties":{"tags":["CVE-2024-0002"]}}]' ]]
+
+    rm -f "$temp_file"
+}
+
+@test "fix_sarif removes duplicate stacks and keeps their order" {
+    local temp_file
+    temp_file=$(mktemp)
+    cat > "$temp_file" << 'EOF'
+{
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "rules": []
+        }
+      },
+      "results": [
+        {
+          "ruleId": "GO-2024-0001",
+          "stacks": [
+            {"message": {"text": "stack b"}, "frames": [{"module": "b"}]},
+            {"message": {"text": "stack b"}, "frames": [{"module": "b"}]},
+            {"message": {"text": "stack a"}, "frames": [{"module": "a"}]},
+            {"message": {"text": "stack a"}, "frames": [{"module": "a"}]}
+          ]
+        }
+      ]
+    }
+  ]
+}
+EOF
+
+    fix_sarif "$temp_file" || return 1
+
+    stacks=$(jq -c '[.runs[0].results[0].stacks[].message.text]' "$temp_file")
+    [[ "$stacks" == '["stack b","stack a"]' ]]
+
+    rm -f "$temp_file"
+}
+
+@test "fix_sarif keeps stacks that differ only in frames" {
+    local temp_file
+    temp_file=$(mktemp)
+    cat > "$temp_file" << 'EOF'
+{
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "rules": []
+        }
+      },
+      "results": [
+        {
+          "ruleId": "GO-2024-0001",
+          "stacks": [
+            {"message": {"text": "stack"}, "frames": [{"module": "a"}]},
+            {"message": {"text": "stack"}, "frames": [{"module": "b"}]}
+          ]
+        }
+      ]
+    }
+  ]
+}
+EOF
+
+    fix_sarif "$temp_file" || return 1
+
+    count=$(jq '.runs[0].results[0].stacks | length' "$temp_file")
+    [[ "$count" -eq 2 ]]
+
+    rm -f "$temp_file"
+}
+
+@test "fix_sarif handles results without stacks" {
+    local temp_file
+    temp_file=$(mktemp)
+    cat > "$temp_file" << 'EOF'
+{
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "rules": []
+        }
+      },
+      "results": [
+        {
+          "ruleId": "GO-2024-0001"
+        }
+      ]
+    }
+  ]
+}
+EOF
+
+    fix_sarif "$temp_file" || return 1
+
+    result=$(jq -c '.runs[0].results' "$temp_file")
+    [[ "$result" == '[{"ruleId":"GO-2024-0001"}]' ]]
 
     rm -f "$temp_file"
 }
