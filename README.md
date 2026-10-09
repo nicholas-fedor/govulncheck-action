@@ -287,6 +287,28 @@ jobs:
 
 Reference: <https://pkg.go.dev/golang.org/x/vuln/cmd/govulncheck#hdr-Exit_codes>
 
+## Requirements
+
+The action runs its bundled code with the `node` binary on the runner's `PATH`.
+GitHub-hosted runners include Node.js. Self-hosted runners need Node.js 20 or later installed.
+
+## Development
+
+The action is written in TypeScript and bundled into `dist/index.js` with [Bun](https://bun.sh).
+`action.yml` is a composite action: it checks out the repository, sets up Go, installs govulncheck, and then runs the bundle with `node`.
+
+| Command              | Description                                  |
+|----------------------|----------------------------------------------|
+| `bun install`        | Install dependencies                         |
+| `bun test`           | Run the tests                                |
+| `bun run lint`       | Lint and check formatting with Biome         |
+| `bun run format`     | Apply Biome formatting and safe fixes        |
+| `bun run typecheck`  | Type-check with `tsc`                        |
+| `bun run build`      | Rebuild `dist/index.js`                      |
+| `bun run check-dist` | Rebuild and fail if `dist/` differs from Git |
+
+Commit the rebuilt `dist/index.js` together with any source change. CI fails a pull request whose bundle is out of date.
+
 ## License
 
 See the [LICENSE](LICENSE) file.

@@ -23,41 +23,22 @@ jobs:
       - checkout
 
       - run:
-          name: Install bashcov
+          name: Install Bun
           command: |
-            sudo apt-get update
-            sudo apt-get install -y ruby-full bats
-            sudo gem install bashcov simplecov-lcov
+            BUN_VERSION="$(jq -r '.packageManager | sub("^bun@"; "")' package.json)"
+            curl -fsSL https://bun.sh/install | bash -s "bun-v${BUN_VERSION}"
+            echo 'export PATH="$HOME/.bun/bin:$PATH"' >> "$BASH_ENV"
 
       - run:
-          name: Make scripts executable
-          command: chmod +x src/*.sh tests/*.sh entrypoint.sh
-
-      - run:
-          name: Create temporary .simplecov config
-          command: |
-            echo 'require "simplecov-lcov"' > .simplecov
-            echo 'SimpleCov::Formatter::LcovFormatter.config.report_with_single_file = true' >> .simplecov
-            echo 'SimpleCov.formatter = SimpleCov::Formatter::LcovFormatter' >> .simplecov
-            echo 'SimpleCov.start do' >> .simplecov
-            echo '  add_filter do |source_file|' >> .simplecov
-            echo '    source_file.filename !~ %r{/src/}' >> .simplecov
-            echo '  end' >> .simplecov
-            echo 'end' >> .simplecov
+          name: Install dependencies
+          command: bun install --frozen-lockfile
 
       - run:
           name: Run tests with coverage
-          command: |
-            mkdir -p coverage
-            bashcov -- bats \
-              --print-output-on-failure \
-              --no-tempdir-cleanup \
-              tests/build_args_test.sh \
-              tests/fix_sarif_test.sh \
-              tests/validate_test.sh
+          command: bun run test:coverage
 
       - codecov/upload:
-          files: ./coverage/lcov/project.lcov
+          files: ./coverage/lcov.info
           flags: unittests
           git_service: github
           fail_on_error: true
