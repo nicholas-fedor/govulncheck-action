@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import * as core from "@actions/core";
@@ -114,6 +114,18 @@ describe("run", () => {
         expect(readFileSync(join(dir, "results.json"), "utf8")).toBe('{"config":{}}\n');
         expect(stderr).toHaveBeenCalledWith(Buffer.from("progress\n"));
         expect(failed).not.toHaveBeenCalled();
+    });
+
+    it("writes the output file relative to the workspace, not the working directory", async () => {
+        setInputs({ "output-format": "json", "output-file": "results.json" });
+        mkdirSync(join(dir, "sub"));
+        process.chdir(join(dir, "sub"));
+        fakeGovulncheck("{}");
+
+        await run();
+
+        expect(readFileSync(join(dir, "results.json"), "utf8")).toBe("{}");
+        expect(existsSync(join(dir, "sub", "results.json"))).toBe(false);
     });
 
     it("leaves non-SARIF output untouched", async () => {

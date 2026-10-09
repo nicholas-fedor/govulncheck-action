@@ -17207,6 +17207,7 @@ var require_eventsource = __commonJS(function(exports, module) {
 
 // src/main.ts
 import { closeSync, openSync, writeSync } from "node:fs";
+import { resolve as resolve3 } from "node:path";
 
 // node_modules/@actions/core/lib/command.js
 import * as os from "os";
@@ -18715,20 +18716,22 @@ async function runToFile(args, outputFile) {
 async function run() {
   try {
     const inputs = getInputs();
+    const workspace = process.env.GITHUB_WORKSPACE || ".";
     info("Running validations...");
-    validateInputs({ ...inputs, workspace: process.env.GITHUB_WORKSPACE || "." });
+    validateInputs({ ...inputs, workspace });
+    const outputPath = inputs.outputFile ? resolve3(workspace, inputs.outputFile) : "";
     info("Building govulncheck arguments...");
     const args = buildArgs(inputs);
     info(`Running govulncheck with arguments: ${args.join(" ")}`);
-    const exitCode = inputs.outputFile ? await runToFile(args, inputs.outputFile) : await exec("govulncheck", args, { ignoreReturnCode: true });
+    const exitCode = outputPath ? await runToFile(args, outputPath) : await exec("govulncheck", args, { ignoreReturnCode: true });
     if (exitCode !== 0) {
       setFailed(`govulncheck exited with code ${exitCode}`);
       process.exitCode = exitCode;
       return;
     }
-    if (inputs.outputFile && inputs.outputFormat === "sarif") {
+    if (outputPath && inputs.outputFormat === "sarif") {
       info("Applying SARIF duplicate tags and stacks fix...");
-      fixSarif(inputs.outputFile);
+      fixSarif(outputPath);
       info("SARIF duplicate tags and stacks fixed");
     }
     info("govulncheck completed successfully");

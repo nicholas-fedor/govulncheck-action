@@ -58,7 +58,7 @@ jobs:
     name: Check dist
     # Renovate updates can change the bundle without rebuilding it. The Build
     # workflow rebuilds dist after they merge.
-    if: github.event_name == 'pull_request' && github.actor != 'renovate[bot]'
+    if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'renovate[bot]'
     runs-on: ubuntu-latest
     permissions:
       contents: read
