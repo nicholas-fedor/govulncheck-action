@@ -1,5 +1,5 @@
 #!/bin/bash
-# SARIF post-processing to fix duplicate CVE tags
+# SARIF post-processing to fix duplicate CVE tags and call stacks
 # Workaround for https://github.com/golang/go/issues/75890
 
 set -euo pipefail
@@ -22,11 +22,21 @@ fix_sarif() {
 
     trap 'rm -f "$temp_file"' EXIT
 
-    jq '.runs[].tool.driver.rules |= map(select(.properties != null and .properties.tags != null) | .properties.tags |= unique)' "$output_file" > "$temp_file" && mv "$temp_file" "$output_file"
+    # Deduplicate rule tags and result stacks, which the SARIF schema requires
+    # to be unique. Stacks keep their original order.
+    jq '
+        def dedupe: reduce .[] as $item ([]; if index([$item]) then . else . + [$item] end);
+        .runs[] |= (
+            (if .tool.driver.rules then
+                .tool.driver.rules |= map(if .properties.tags then .properties.tags |= unique else . end)
+            else . end)
+            | (.results[]? |= (if .stacks then .stacks |= dedupe else . end))
+        )
+    ' "$output_file" > "$temp_file" && mv "$temp_file" "$output_file"
 
     trap - EXIT
 
-    echo "SARIF duplicate tags fixed"
+    echo "SARIF duplicate tags and stacks fixed"
 }
 
 # If run directly, execute fix
