@@ -1,5 +1,5 @@
 # Test artifacts
-tests/*.tap
+coverage/
 *.tmp
 
 # IDE
@@ -16,5 +16,5 @@ node_modules/
 .bun/
 bun.lockb
 
-# Build
-dist/
+# The bundled action is committed so the action can run from a checkout
+!dist/

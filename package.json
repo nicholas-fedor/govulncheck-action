@@ -1,9 +1,32 @@
 {
+  "name": "govulncheck-action",
+  "description": "GitHub Action that runs govulncheck to detect known vulnerabilities in Go dependencies.",
+  "private": true,
   "type": "module",
-  "dependencies": {},
+  "main": "dist/index.js",
+  "packageManager": "bun@1.4.2",
+  "scripts": {
+    "build": "bun build src/index.ts --bundle --outfile=dist/index.js --target=node",
+    "check-dist": "bun run build && git diff --exit-code -- dist/",
+    "commitlint": "commitlint",
+    "format": "biome check --write .",
+    "lint": "biome check .",
+    "test": "bun test",
+    "test:coverage": "bun test --coverage --coverage-reporter=text --coverage-reporter=lcov",
+    "typecheck": "tsc --noEmit"
+  },
+  "license": "BSD-3-Clause",
+  "dependencies": {
+    "@actions/core": "^3.0.1",
+    "@actions/exec": "^3.0.0"
+  },
   "devDependencies": {
+    "@biomejs/biome": "2.5.15",
     "@commitlint/cli": "21.2.3",
     "@commitlint/config-conventional": "21.2.3",
-    "semantic-release": "25.0.9"
+    "@types/bun": "1.4.2",
+    "@types/node": "26.6.4",
+    "semantic-release": "25.0.9",
+    "typescript": "7.0.2"
   }
 }

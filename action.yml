@@ -126,16 +126,16 @@ runs:
       shell: bash
 
     - name: Run govulncheck
-      run: ${{ github.action_path }}/entrypoint.sh
+      run: node "${{ github.action_path }}/dist/index.js"
       shell: bash
       env:
-        INPUTS_WORK_DIR: ${{ inputs.work-dir }}
-        INPUTS_OUTPUT_FORMAT: ${{ inputs.output-format }}
-        INPUTS_GO_PACKAGE: ${{ inputs.go-package }}
-        INPUTS_SCAN_LEVEL: ${{ inputs.scan-level }}
-        INPUTS_INCLUDE_TESTS: ${{ inputs.include-tests }}
-        INPUTS_BUILD_TAGS: ${{ inputs.build-tags }}
-        INPUTS_DB_URL: ${{ inputs.db-url }}
-        INPUTS_MODE: ${{ inputs.mode }}
-        INPUTS_SHOW: ${{ inputs.show }}
-        INPUTS_OUTPUT_FILE: ${{ inputs.output-file }}
+        INPUT_WORK-DIR: ${{ inputs.work-dir }}
+        INPUT_OUTPUT-FORMAT: ${{ inputs.output-format }}
+        INPUT_GO-PACKAGE: ${{ inputs.go-package }}
+        INPUT_SCAN-LEVEL: ${{ inputs.scan-level }}
+        INPUT_INCLUDE-TESTS: ${{ inputs.include-tests }}
+        INPUT_BUILD-TAGS: ${{ inputs.build-tags }}
+        INPUT_DB-URL: ${{ inputs.db-url }}
+        INPUT_MODE: ${{ inputs.mode }}
+        INPUT_SHOW: ${{ inputs.show }}
+        INPUT_OUTPUT-FILE: ${{ inputs.output-file }}
