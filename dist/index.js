@@ -1737,6 +1737,7 @@ var require_dispatcher = __commonJS(function(exports, module) {
 
 // node_modules/@actions/http-client/node_modules/undici/lib/dispatcher/dispatcher-base.js
 var require_dispatcher_base = __commonJS(function(exports, module) {
+  var buffer = __require("node:buffer");
   var Dispatcher = require_dispatcher();
   var {
     ClientDestroyedError,
@@ -1748,6 +1749,7 @@ var require_dispatcher_base = __commonJS(function(exports, module) {
   var kOnClosed = Symbol("onClosed");
   var kInterceptedDispatch = Symbol("Intercepted Dispatch");
   var kWebSocketOptions = Symbol("webSocketOptions");
+  var kEventSourceOptions = Symbol("eventSourceOptions");
 
   class DispatcherBase extends Dispatcher {
     constructor(opts) {
@@ -1757,11 +1759,17 @@ var require_dispatcher_base = __commonJS(function(exports, module) {
       this[kClosed] = false;
       this[kOnClosed] = [];
       this[kWebSocketOptions] = opts?.webSocket ?? {};
+      this[kEventSourceOptions] = opts?.eventSource ?? {};
     }
     get webSocketOptions() {
       return {
         maxFragments: this[kWebSocketOptions].maxFragments ?? 131072,
         maxPayloadSize: this[kWebSocketOptions].maxPayloadSize ?? 128 * 1024 * 1024
+      };
+    }
+    get eventSourceOptions() {
+      return {
+        maxEventSize: this[kEventSourceOptions].maxEventSize ?? buffer.kStringMaxLength
       };
     }
     get destroyed() {
@@ -5557,7 +5565,6 @@ var require_client_h1 = __commonJS(function(exports, module) {
     socket[kSocketUsed] = false;
     socket[kParser] = new Parser(client, socket, llhttpInstance);
     addListener(socket, "error", function(err) {
-      assert(err.code !== "ERR_TLS_CERT_ALTNAME_INVALID");
       const parser = this[kParser];
       if (err.code === "ECONNRESET" && parser.statusCode && !parser.shouldKeepAlive) {
         const parserErr = parser.finish();
@@ -6244,7 +6251,6 @@ var require_client_h2 = __commonJS(function(exports, module) {
     client[kHTTP2Session] = session;
     socket[kHTTP2Session] = session;
     util.addListener(socket, "error", function(err) {
-      assert(err.code !== "ERR_TLS_CERT_ALTNAME_INVALID");
       this[kError] = err;
       this[kClient][kOnError](err);
     });
@@ -6303,7 +6309,6 @@ var require_client_h2 = __commonJS(function(exports, module) {
     }
   }
   function onHttp2SessionError(err) {
-    assert(err.code !== "ERR_TLS_CERT_ALTNAME_INVALID");
     this[kSocket][kError] = err;
     this[kClient][kOnError](err);
   }
@@ -6926,9 +6931,10 @@ var require_client = __commonJS(function(exports, module) {
       autoSelectFamilyAttemptTimeout,
       maxConcurrentStreams,
       allowH2,
-      webSocket
+      webSocket,
+      eventSource
     } = {}) {
-      super({ webSocket });
+      super({ webSocket, eventSource });
       if (keepAlive !== undefined) {
         throw new InvalidArgumentError("unsupported keepAlive, use pipelining=0 instead");
       }
@@ -7811,7 +7817,7 @@ var require_agent = __commonJS(function(exports, module) {
   }
 
   class Agent extends DispatcherBase {
-    constructor({ factory = defaultFactory, maxRedirections = 0, connect, ...options } = {}) {
+    constructor({ factory = defaultFactory, maxRedirections = 0, connect, tls, ...options } = {}) {
       if (typeof factory !== "function") {
         throw new InvalidArgumentError("factory must be a function.");
       }
@@ -7825,8 +7831,11 @@ var require_agent = __commonJS(function(exports, module) {
       if (connect && typeof connect !== "function") {
         connect = { ...connect };
       }
+      if (tls && typeof tls !== "function") {
+        tls = { ...tls };
+      }
       this[kInterceptors] = options.interceptors?.Agent && Array.isArray(options.interceptors.Agent) ? options.interceptors.Agent : [createRedirectInterceptor({ maxRedirections })];
-      this[kOptions] = { ...util.deepClone(options), connect };
+      this[kOptions] = { ...util.deepClone(options), connect, tls };
       this[kOptions].interceptors = options.interceptors ? { ...options.interceptors } : undefined;
       this[kMaxRedirections] = maxRedirections;
       this[kFactory] = factory;
@@ -13104,8 +13113,9 @@ var require_fetch = __commonJS(function(exports, module) {
       type: "bytes"
     });
     response.body = { stream, source: null, length: null };
-    fetchParams.controller.onAborted = onAborted;
-    fetchParams.controller.on("terminated", onAborted);
+    if (!fetchParams.controller.resume) {
+      fetchParams.controller.on("terminated", onAborted);
+    }
     fetchParams.controller.resume = async () => {
       while (true) {
         let bytes;
@@ -13201,7 +13211,6 @@ var require_fetch = __commonJS(function(exports, module) {
             headersList.append(bufferToLowerCasedHeaderName(rawHeaders[i]), rawHeaders[i + 1].toString("latin1"), true);
           }
           location = headersList.get("location", true);
-          this.body = new Readable({ read: resume });
           const decoders = [];
           const willFollow = location && request.redirect === "follow" && redirectStatusSet.has(status);
           if (request.method !== "HEAD" && request.method !== "CONNECT" && !nullBodyStatus.includes(status) && !willFollow) {
@@ -13209,7 +13218,7 @@ var require_fetch = __commonJS(function(exports, module) {
             const codings = contentEncoding ? contentEncoding.toLowerCase().split(",") : [];
             const maxContentEncodings = 5;
             if (codings.length > maxContentEncodings) {
-              reject(new Error(`too many content-encodings in response: ${codings.length}, maximum allowed is ${maxContentEncodings}`));
+              this.abort(new Error(`too many content-encodings in response: ${codings.length}, maximum allowed is ${maxContentEncodings}`));
               return true;
             }
             for (let i = codings.length - 1;i >= 0; --i) {
@@ -13235,6 +13244,7 @@ var require_fetch = __commonJS(function(exports, module) {
               }
             }
           }
+          this.body = new Readable({ read: resume });
           const onError = this.onError.bind(this);
           resolve({
             status,
@@ -13259,9 +13269,6 @@ var require_fetch = __commonJS(function(exports, module) {
         onComplete() {
           if (this.abort) {
             fetchParams.controller.off("terminated", this.abort);
-          }
-          if (fetchParams.controller.onAborted) {
-            fetchParams.controller.off("terminated", fetchParams.controller.onAborted);
           }
           fetchParams.controller.ended = true;
           this.body.push(null);
@@ -16093,6 +16100,17 @@ var require_receiver = __commonJS(function(exports, module) {
           if (isControlFrame(this.#info.opcode)) {
             this.#loop = this.parseControlFrame(body);
             this.#state = parserStates.INFO;
+            const socket = this.ws[kResponse].socket;
+            if (this.#loop && socket.writableNeedDrain) {
+              this.#loop = false;
+              socket.once("drain", () => {
+                if (this.destroyed)
+                  return;
+                this.#loop = true;
+                this.run(callback);
+              });
+              return;
+            }
           } else {
             if (!this.#info.compressed) {
               if (!this.writeFragments(body)) {
@@ -16723,6 +16741,7 @@ var require_util8 = __commonJS(function(exports, module) {
 
 // node_modules/@actions/http-client/node_modules/undici/lib/web/eventsource/eventsource-stream.js
 var require_eventsource_stream = __commonJS(function(exports, module) {
+  var buffer = __require("node:buffer");
   var { Transform } = __require("node:stream");
   var { isASCIINumber, isValidLastEventId } = require_util8();
   var BOM = [239, 187, 191];
@@ -16730,10 +16749,14 @@ var require_eventsource_stream = __commonJS(function(exports, module) {
   var CR = 13;
   var COLON = 58;
   var SPACE = 32;
+  var defaultMaxEventSize = buffer.kStringMaxLength;
   var DATA = Buffer.from("data");
   var EVENT = Buffer.from("event");
   var ID = Buffer.from("id");
   var RETRY = Buffer.from("retry");
+  var minParserItems = 1024;
+  var maxParserItems = 131072;
+  var bytesPerParserItem = 128;
   function isASCIINumberBytes(buffer, start) {
     if (start >= buffer.length) {
       return false;
@@ -16764,6 +16787,11 @@ var require_eventsource_stream = __commonJS(function(exports, module) {
     }
     return true;
   }
+  function createMaxEventSizeExceededError() {
+    const error = new Error("EventSource message size exceeded");
+    error.aborted = false;
+    return error;
+  }
 
   class EventSourceStream extends Transform {
     state = null;
@@ -16775,6 +16803,13 @@ var require_eventsource_stream = __commonJS(function(exports, module) {
     pos = 0;
     lineChunkIndex = 0;
     linePos = 0;
+    lineLength = 0;
+    eventSize = 0;
+    eventFieldSizes = { data: 0, event: 0, id: 0, retry: 0 };
+    dataLineCount = 0;
+    maxEventSize;
+    maxDataLines;
+    maxBufferedChunks;
     event = {
       data: undefined,
       event: undefined,
@@ -16785,6 +16820,10 @@ var require_eventsource_stream = __commonJS(function(exports, module) {
       options.readableObjectMode = true;
       super(options);
       this.state = options.eventSourceSettings || {};
+      this.maxEventSize = options.maxEventSize ?? defaultMaxEventSize;
+      const parserItemLimit = this.maxEventSize > 0 ? Math.min(maxParserItems, Math.max(minParserItems, Math.floor(this.maxEventSize / bytesPerParserItem))) : 0;
+      this.maxDataLines = parserItemLimit;
+      this.maxBufferedChunks = parserItemLimit;
       if (options.push) {
         this.push = options.push;
       }
@@ -16792,6 +16831,10 @@ var require_eventsource_stream = __commonJS(function(exports, module) {
     _transform(chunk, _encoding, callback) {
       if (chunk.length === 0) {
         callback();
+        return;
+      }
+      if (this.maxEventSize > 0 && this.chunks.length >= this.maxBufferedChunks && chunk[0] !== LF && chunk[0] !== CR) {
+        callback(createMaxEventSizeExceededError());
         return;
       }
       this.chunks.push(chunk);
@@ -16830,14 +16873,28 @@ var require_eventsource_stream = __commonJS(function(exports, module) {
           if (byte === CR) {
             this.crlfCheck = true;
           }
-          this.parseLine(this.readLine(), this.event);
+          try {
+            this.parseLine(this.readLine(), this.event);
+          } catch (error) {
+            callback(error);
+            return;
+          }
           this.consumeCurrentByte();
           this.eventEndCheck = true;
           continue;
         }
+        if (this.maxEventSize > 0 && ++this.lineLength > this.maxEventSize + 7) {
+          callback(createMaxEventSizeExceededError());
+          return;
+        }
         this.advanceCursor();
       }
       callback();
+    }
+    _destroy(error, callback) {
+      this.chunks.length = 0;
+      this.clearEvent();
+      super._destroy(error, callback);
     }
     parseLine(line, event) {
       if (line.length === 0) {
@@ -16857,6 +16914,12 @@ var require_eventsource_stream = __commonJS(function(exports, module) {
         }
       }
       if (isFieldName(line, fieldLength, DATA)) {
+        if (this.maxEventSize > 0 && this.dataLineCount >= this.maxDataLines) {
+          throw createMaxEventSizeExceededError();
+        }
+        const valueBytes = line.length - valueStart;
+        const dataSize = this.eventFieldSizes.data + (event.data === undefined ? 0 : 1) + valueBytes;
+        this.setEventFieldSize("data", dataSize);
         const value = line.toString("utf8", valueStart);
         if (event.data === undefined) {
           event.data = value;
@@ -16864,26 +16927,37 @@ var require_eventsource_stream = __commonJS(function(exports, module) {
           event.data += `
 ${value}`;
         }
+        this.dataLineCount++;
         return;
       }
       if (isFieldName(line, fieldLength, RETRY)) {
         if (isASCIINumberBytes(line, valueStart)) {
+          this.setEventFieldSize("retry", line.length - valueStart);
           event.retry = line.toString("utf8", valueStart);
         }
         return;
       }
       if (isFieldName(line, fieldLength, ID)) {
         if (isValidLastEventIdBytes(line, valueStart)) {
+          this.setEventFieldSize("id", line.length - valueStart);
           event.id = line.toString("utf8", valueStart);
         }
         return;
       }
       if (isFieldName(line, fieldLength, EVENT)) {
-        const value = line.toString("utf8", valueStart);
-        if (value.length > 0) {
-          event.event = value;
+        if (valueStart < line.length) {
+          this.setEventFieldSize("event", line.length - valueStart);
+          event.event = line.toString("utf8", valueStart);
         }
       }
+    }
+    setEventFieldSize(field, size) {
+      const eventSize = this.eventSize - this.eventFieldSizes[field] + size;
+      if (this.maxEventSize > 0 && eventSize > this.maxEventSize) {
+        throw createMaxEventSizeExceededError();
+      }
+      this.eventSize = eventSize;
+      this.eventFieldSizes[field] = size;
     }
     processEvent(event) {
       if (event.retry && isASCIINumber(event.retry)) {
@@ -16908,6 +16982,12 @@ ${value}`;
       this.event.event = undefined;
       this.event.id = undefined;
       this.event.retry = undefined;
+      this.eventSize = 0;
+      this.dataLineCount = 0;
+      this.eventFieldSizes.data = 0;
+      this.eventFieldSizes.event = 0;
+      this.eventFieldSizes.id = 0;
+      this.eventFieldSizes.retry = 0;
     }
     hasPendingEvent() {
       return this.event.data !== undefined || this.event.event !== undefined || this.event.id !== undefined || this.event.retry !== undefined;
@@ -16932,13 +17012,15 @@ ${value}`;
     syncLineStartToCursor() {
       this.lineChunkIndex = this.chunkIndex;
       this.linePos = this.pos;
+      this.lineLength = 0;
       this.dropConsumedChunks();
     }
     dropConsumedChunks() {
-      while (this.lineChunkIndex > 0) {
-        this.chunks.shift();
-        this.lineChunkIndex--;
-        this.chunkIndex--;
+      if (this.lineChunkIndex > 0) {
+        const consumed = this.lineChunkIndex;
+        this.chunks.splice(0, consumed);
+        this.lineChunkIndex = 0;
+        this.chunkIndex -= consumed;
       }
       if (this.chunkIndex === this.chunks.length) {
         this.chunks.length = 0;
@@ -17038,6 +17120,7 @@ var require_eventsource = __commonJS(function(exports, module) {
   var { delay } = require_util8();
   var { kEnumerableProperty } = require_util();
   var { environmentSettingsObject } = require_util2();
+  var { getGlobalDispatcher } = require_global2();
   var experimentalWarned = false;
   var defaultReconnectionTime = 3000;
   var CONNECTING = 0;
@@ -17155,6 +17238,7 @@ var require_eventsource = __commonJS(function(exports, module) {
         this.#state.origin = response.urlList[response.urlList.length - 1].origin;
         const eventSourceStream = new EventSourceStream({
           eventSourceSettings: this.#state,
+          maxEventSize: this.#dispatcher.eventSourceOptions?.maxEventSize,
           push: (event) => {
             this.dispatchEvent(createFastMessageEvent(event.type, event.options));
           }
@@ -17274,7 +17358,8 @@ var require_eventsource = __commonJS(function(exports, module) {
     },
     {
       key: "dispatcher",
-      converter: webidl.converters.any
+      converter: webidl.converters.any,
+      defaultValue: () => getGlobalDispatcher()
     }
   ]);
   module.exports = {
